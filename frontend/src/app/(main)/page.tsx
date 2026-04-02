@@ -8,11 +8,11 @@ import { Shield, AlertTriangle, Globe, Users, TrendingUp } from "lucide-react";
 import { getStats, getRiskScore } from "@/lib/api";
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#dc2626",
-  high: "#ef4444",
-  medium: "#f59e0b",
-  low: "#22c55e",
-  info: "#3b82f6",
+  critical: "#ff0000",
+  high: "#ff0055",
+  medium: "#ffb800",
+  low: "#00ff66",
+  info: "#00a3ff",
 };
 
 export default function DashboardPage() {
@@ -80,7 +80,7 @@ export default function DashboardPage() {
         <div className="stat-card red">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div className="stat-value" style={{ color: "#fca5a5" }}>{stats.suspicious_events}</div>
+              <div className="stat-value" style={{ color: "var(--danger)" }}>{stats.suspicious_events}</div>
               <div className="stat-label">Suspicious Events</div>
             </div>
             <AlertTriangle size={24} style={{ color: "var(--danger)" }} />
@@ -89,7 +89,7 @@ export default function DashboardPage() {
         <div className="stat-card green">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div className="stat-value" style={{ color: "#86efac" }}>{stats.unique_ips}</div>
+              <div className="stat-value" style={{ color: "var(--success)" }}>{stats.unique_ips}</div>
               <div className="stat-label">Unique IPs</div>
             </div>
             <Globe size={24} style={{ color: "var(--success)" }} />
@@ -98,7 +98,7 @@ export default function DashboardPage() {
         <div className="stat-card amber">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div className="stat-value" style={{ color: "#fde68a" }}>{stats.unique_users}</div>
+              <div className="stat-value" style={{ color: "var(--warning)" }}>{stats.unique_users}</div>
               <div className="stat-label">Unique Users</div>
             </div>
             <Users size={24} style={{ color: "var(--warning)" }} />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Risk Score + Severity Pie */}
-      <div className="grid-2" style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24, marginBottom: 24 }}>
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">🎯 Risk Score</h3>
@@ -144,14 +144,14 @@ export default function DashboardPage() {
           <div className="card-header">
             <h3 className="card-title">📊 Severity Distribution</h3>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={severityData}
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
-                innerRadius={45}
+                outerRadius={100}
+                innerRadius={60}
                 dataKey="value"
                 stroke="none"
               >
@@ -164,11 +164,11 @@ export default function DashboardPage() {
               />
             </PieChart>
           </ResponsiveContainer>
-          <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: 16 }}>
             {severityData.map((d) => (
-              <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: d.fill }} />
-                <span style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "capitalize" }}>
+              <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 12, height: 12, borderRadius: "50%", background: d.fill }} />
+                <span style={{ fontSize: 13, color: "var(--text-muted)", textTransform: "capitalize" }}>
                   {d.name}: {d.value}
                 </span>
               </div>
@@ -178,19 +178,19 @@ export default function DashboardPage() {
       </div>
 
       {/* Top IPs + Failed Login Trend */}
-      <div className="grid-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">🔴 Top Source IPs</h3>
           </div>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={stats.top_source_ips?.slice(0, 8)} layout="vertical">
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={stats.top_source_ips?.slice(0, 10)} layout="vertical">
               <XAxis type="number" stroke="#64748b" fontSize={12} />
               <YAxis dataKey="ip" type="category" stroke="#64748b" fontSize={11} width={110} />
               <Tooltip
                 contentStyle={{ background: "#1a1f35", border: "1px solid #2a3050", borderRadius: 8, fontSize: 12 }}
               />
-              <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+              <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20}>
                 {stats.top_source_ips?.map((entry: any, i: number) => (
                   <Cell
                     key={i}
@@ -206,7 +206,7 @@ export default function DashboardPage() {
           <div className="card-header">
             <h3 className="card-title">📈 Failed Login Trend</h3>
           </div>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={350}>
             <LineChart data={stats.failed_login_trend}>
               <XAxis
                 dataKey="time"
@@ -222,9 +222,9 @@ export default function DashboardPage() {
                 type="monotone"
                 dataKey="count"
                 stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ fill: "#ef4444", r: 4 }}
-                activeDot={{ r: 6, fill: "#f87171" }}
+                strokeWidth={3}
+                dot={{ fill: "#ef4444", r: 5 }}
+                activeDot={{ r: 8, fill: "#f87171" }}
               />
             </LineChart>
           </ResponsiveContainer>

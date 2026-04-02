@@ -135,19 +135,7 @@ export default function UploadPage() {
         </button>
       </div>
 
-      {/* Sample Logs Info */}
-      <div className="card" style={{ marginTop: 24 }}>
-        <h3 className="card-title" style={{ marginBottom: 12 }}>📂 Sample Logs Available</h3>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
-          Demo log files are available in <code style={{
-            background: "rgba(99,102,241,0.15)", padding: "2px 8px", borderRadius: 4
-          }}>backend/sample_logs/</code>:
-        </p>
-        <ul style={{ paddingLeft: 20, marginTop: 8, color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.8 }}>
-          <li><strong>sample_auth.log</strong> — SSH brute force → root compromise → privilege escalation → exfiltration</li>
-          <li><strong>sample_firewall.csv</strong> — Port scanning, SSH sessions, and suspicious traffic patterns</li>
-        </ul>
-      </div>
+
     </div>
   );
 }
