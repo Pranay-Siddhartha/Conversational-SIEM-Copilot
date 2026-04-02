@@ -9,10 +9,11 @@ class Settings(BaseSettings):
         "sqlite:///./siem_copilot.db"
     )
 
-    # AI Provider: "openai" or "gemini"
-    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini")
+    # AI Provider: "openai", "gemini", or "groq"
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "groq")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
     # App
     APP_TITLE: str = "SIEM Copilot API"

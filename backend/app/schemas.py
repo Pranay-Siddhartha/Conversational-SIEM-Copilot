@@ -76,6 +76,21 @@ class RiskScoreResponse(BaseModel):
     factors: list[dict]
 
 
+# ── Attack Chains (Multi-Incident) ──────────────────────────
+class AttackChain(BaseModel):
+    incident_name: str
+    source_ip: str
+    severity: str
+    primary_attack_type: str
+    timeline: list[TimelineEvent]
+    ai_narrative: str
+    prediction: PredictionResponse
+
+
+class AttackChainsResponse(BaseModel):
+    chains: list[AttackChain]
+
+
 # ── Incidents & Reports ────────────────────────────────────
 class IncidentOut(BaseModel):
     id: int

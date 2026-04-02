@@ -11,13 +11,17 @@ You have access to security log data. When answering questions:
 
 If asked to "show suspicious IPs", "find brute force attacks", or similar, analyze the log data and provide actionable insights."""
 
-CHAT_USER_TEMPLATE = """Here is the security log context (recent {count} events):
-
+CHAT_USER_TEMPLATE = """<logs>
 {log_context}
+</logs>
+
+The above are recent {count} log events for context.
 
 User question: {question}
 
-Analyze the log data above and answer the question. Be specific with IPs, usernames, timestamps, and counts. If you detect threats, explain their severity."""
+Instructions:
+1. If the user's question is just a general greeting (like "hello there", "hi"), respond conversationally and do NOT output log data.
+2. If the user asks about the logs or threats, analyze the <logs> data and answer the question. Be specific with IPs, usernames, timestamps, and counts. Include severity explanation if threats are detected."""
 
 TIMELINE_PROMPT = """You are a cybersecurity attack storytelling expert. Given the following suspicious security events, create a compelling attack narrative.
 

@@ -19,9 +19,10 @@ def _call_ai(system_prompt: str, user_prompt: str) -> str:
         return _call_openai(system_prompt, user_prompt)
     elif provider == "gemini" and settings.GEMINI_API_KEY:
         return _call_gemini(system_prompt, user_prompt)
+    elif provider == "groq" and settings.GROQ_API_KEY:
+        return _call_groq(system_prompt, user_prompt)
     else:
-        # Smart fallback — analyze the data directly
-        return _smart_analysis(user_prompt)
+        raise ValueError("No API key configured. Utilizing local smart fallback.")
 
 
 def _call_openai(system_prompt: str, user_prompt: str) -> str:
@@ -64,6 +65,40 @@ def _call_gemini(system_prompt: str, user_prompt: str) -> str:
         raise RuntimeError(f"Gemini API error: {body[:100]}")
 
 
+def _call_groq(system_prompt: str, user_prompt: str) -> str:
+    """Call Groq API using standard urllib to keep dependencies light."""
+    api_key = settings.GROQ_API_KEY
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    
+    payload = json.dumps({
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 2048,
+    })
+    
+    req = urllib.request.Request(
+        url, data=payload.encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }, 
+        method="POST"
+    )
+    
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data["choices"][0]["message"]["content"]
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        raise RuntimeError(f"Groq API error: {body[:200]}")
+
+
 # ── Public API ───────────────────────────────────────────────
 
 def chat_with_logs(question: str, log_context: str, count: int = 0) -> str:
@@ -74,7 +109,8 @@ def chat_with_logs(question: str, log_context: str, count: int = 0) -> str:
 
     provider = settings.AI_PROVIDER.lower()
     has_key = (provider == "openai" and settings.OPENAI_API_KEY) or \
-              (provider == "gemini" and settings.GEMINI_API_KEY)
+              (provider == "gemini" and settings.GEMINI_API_KEY) or \
+              (provider == "groq" and settings.GROQ_API_KEY)
 
     if has_key:
         try:
@@ -509,3 +545,4 @@ def _build_smart_report(incident_data_str: str) -> str:
 def _smart_analysis(prompt: str) -> str:
     """Generic smart analysis fallback."""
     return _format_summary([], 0, [], [], Counter(), Counter(), [])
+ 
