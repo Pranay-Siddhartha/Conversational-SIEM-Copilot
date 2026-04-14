@@ -112,13 +112,17 @@ def get_stats(db: Session = Depends(get_db)):
 
     # Recent threats
     recent = [
-        {
-            "timestamp": e.timestamp.isoformat() if e.timestamp else "",
-            "event": f"{e.action} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}",
-            "severity": e.severity or "info",
-        }
-        for e in sorted(events, key=lambda x: x.timestamp or x.created_at, reverse=True)[:5]
-        if e.severity in ("high", "critical")
+    {
+        "timestamp": e.timestamp.isoformat() if e.timestamp else "",
+        "event": f"{e.action} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}",
+        "severity": e.severity or "info",
+    }
+    for e in sorted(
+        events,
+        key=lambda x: x.timestamp if x.timestamp else "",
+        reverse=True
+    )[:5]
+    if e.severity in ("high", "critical")
     ]
 
     return DashboardStats(
