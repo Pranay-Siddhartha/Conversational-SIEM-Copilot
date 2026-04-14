@@ -1,32 +1,70 @@
 /**
- * SIEM Copilot Frontend API Client
- * Standardized to communicate with the hardened FastAPI/Vercel backend.
+ * SIEM Copilot Enterprise API Client
+ * Production-ready bridge with exponential backoff retries and timeout protection.
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000;
 
 /**
- * Helper for making JSON requests.
+ * Enhanced fetch with retry logic and timeout protection.
  */
-async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = `${BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount = 0): Promise<any> {
+  const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s SaaS timeout
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`API Error ${response.status}: ${errorBody}`);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+        // SaaS Error Handling: Extract JSON error if possible
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || errorData.error || `Error ${response.status}`;
+        
+        // Retry logic for 5xx errors
+        if (response.status >= 500 && retryCount < MAX_RETRIES) {
+            const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
+            console.warn(`[API] Server error (${response.status}). Retrying in ${delay}ms...`);
+            await new Promise(res => setTimeout(res, delay));
+            return apiFetch(endpoint, options, retryCount + 1);
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error("Request timed out after 30 seconds. Please try again.");
+    }
+    
+    // Retry on network errors
+    if (retryCount < MAX_RETRIES) {
+        const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
+        console.warn(`[API] Network error. Retrying in ${delay}ms...`);
+        await new Promise(res => setTimeout(res, delay));
+        return apiFetch(endpoint, options, retryCount + 1);
+    }
+    
+    throw error;
   }
-
-  return response.json();
 }
 
-// --- LOGS ---
+// ── LOGS ──────────────────────────────────────────────────
+
 export async function uploadLog(file: File) {
   const formData = new FormData();
   formData.append("file", file);
@@ -37,12 +75,13 @@ export async function uploadLog(file: File) {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Upload failed: ${errorBody}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Upload failed. Verify file format.");
   }
 
   return response.json();
 }
+
 export async function getStats() {
   return apiFetch("/logs/stats");
 }
@@ -51,7 +90,7 @@ export async function clearLogs() {
   return apiFetch("/logs/clear", { method: "DELETE" });
 }
 
-// --- ANALYSIS ---
+// ── ANALYSIS ──────────────────────────────────────────────
 
 export async function getRiskScore() {
   return apiFetch("/analysis/risk-score");
@@ -65,7 +104,7 @@ export async function getPredictions() {
   return apiFetch("/analysis/predictions");
 }
 
-// --- CHAT ---
+// ── CHAT ──────────────────────────────────────────────────
 
 export async function sendChat(message: string, contextLimit: number = 30) {
   return apiFetch("/chat/", {
@@ -74,7 +113,7 @@ export async function sendChat(message: string, contextLimit: number = 30) {
   });
 }
 
-// --- REPORTS ---
+// ── REPORTS ──────────────────────────────────────────────
 
 export async function generateReport(title: string = "Security Incident Report") {
   return apiFetch("/reports/generate", {

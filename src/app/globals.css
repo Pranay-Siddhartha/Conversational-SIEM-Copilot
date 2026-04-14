@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #05070a;
-  --bg-secondary: #0a0c12;
-  --bg-card: rgba(10, 16, 26, 0.7);
-  --bg-card-hover: rgba(14, 22, 36, 0.85);
-  --border-color: rgba(0, 243, 255, 0.2);
-  --text-primary: #f0f4f8;
-  --text-secondary: #b4c5d6;
-  --text-muted: #6b829c;
+  --bg-primary: #020408;
+  --bg-secondary: #05070a;
+  --bg-card: rgba(10, 16, 26, 0.45);
+  --bg-card-hover: rgba(14, 22, 36, 0.65);
+  --border-color: rgba(0, 243, 255, 0.15);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
   --accent-primary: #00f3ff;
-  --accent-secondary: #7b61ff;
-  --accent-glow: rgba(0, 243, 255, 0.35);
-  --success: #00ff66;
-  --warning: #ffb800;
-  --danger: #ff0055;
-  --critical: #ff0000;
-  --info: #00a3ff;
-  --sidebar-width: 260px;
+  --accent-secondary: #8b5cf6;
+  --accent-glow: rgba(0, 243, 255, 0.25);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --critical: #dc2626;
+  --info: #0ea5e9;
+  --sidebar-width: 280px;
 }
 
 @font-face {
@@ -35,11 +35,13 @@ html, body {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(123, 97, 255, 0.08) 0%, transparent 50%),
-    linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.02) 100%);
+    radial-gradient(circle at 50% -10%, rgba(0, 243, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
+    linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.01) 100%);
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  letter-spacing: -0.01em;
 }
 
 /* Scrollbar */

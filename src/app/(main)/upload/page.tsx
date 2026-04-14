@@ -1,7 +1,9 @@
 "use client";
 import { useState, useRef } from "react";
-import { Upload, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, CheckCircle, AlertCircle, FileText, Database, ArrowRight, Activity } from "lucide-react";
 import { uploadLog, clearLogs } from "@/lib/api";
+import { AlertBanner } from "@/components/AlertBanner";
 
 export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
@@ -10,24 +12,24 @@ export default function UploadPage() {
   const [dragover, setDragover] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-const handleFile = async (file: File) => {
-  setUploading(true);
-  setError("");
-  setResult(null);
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    setError("");
+    setResult(null);
 
-  try {
-    const data = await uploadLog(file);
-    setResult(data);
-  } catch (e) {
-    setError(
-      e instanceof Error
-        ? e.message
-        : "Failed to upload log file."
-    );
-  } finally {
-    setUploading(false);
-  }
-};
+    try {
+      const data = await uploadLog(file);
+      setResult(data);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "System encountered an error during telemetry ingestion."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -37,30 +39,60 @@ const handleFile = async (file: File) => {
   };
 
   const handleClear = async () => {
+    if (!confirm("This will permanently purge all telemetry records from Supabase. Proceed?")) return;
     try {
       await clearLogs();
       setResult(null);
       setError("");
+      alert("Telemetry storage purged successfully.");
     } catch {
-      setError("Failed to clear logs.");
+      setError("Critical failure while attempting to purge logs.");
     }
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <h1>📤 Upload Security Logs</h1>
-        <p>Upload auth logs, firewall logs, CSV, or JSON files for analysis</p>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      className="max-w-5xl"
+    >
+      <div className="page-header mb-8">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Database className="text-[var(--accent-primary)]" />
+            Telemetry Ingestion
+        </h1>
+        <p className="text-[var(--text-muted)] mt-1">Deploy raw security logs to the AI-augmented SOC environment</p>
       </div>
 
+      <AnimatePresence>
+        {error && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+            <AlertBanner type="error" message={error} onClose={() => setError("")} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Upload Zone */}
-      <div
-        className={`upload-zone ${dragover ? "dragover" : ""}`}
+      <motion.div
+        whileHover={{ scale: 1.005 }}
+        whileTap={{ scale: 0.995 }}
+        className={`upload-zone relative overflow-hidden ${dragover ? "dragover" : ""}`}
         onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
         onDragLeave={() => setDragover(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
       >
+        <div className="absolute top-0 left-0 w-full h-1 bg-[var(--border-color)]">
+            {uploading && (
+                <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] shadow-[0_0_10px_var(--accent-primary)]"
+                />
+            )}
+        </div>
+
         <input
           ref={fileRef}
           type="file"
@@ -72,90 +104,85 @@ const handleFile = async (file: File) => {
           }}
         />
         {uploading ? (
-          <>
-            <div className="spinner" style={{ margin: "0 auto", width: 32, height: 32 }} />
-            <h3 style={{ marginTop: 16 }}>Parsing & Storing Events...</h3>
-          </>
+          <div className="py-8">
+            <Activity className="animate-spin text-[var(--accent-primary)] mx-auto mb-4" size={40} />
+            <h3 className="text-xl font-bold">Synchronizing Investigation Data...</h3>
+            <p className="text-[var(--text-muted)]">Parsing headers, normalizing timestamps, and indexing records</p>
+          </div>
         ) : (
-          <>
-            <Upload size={48} style={{ color: "var(--accent-primary)", margin: "0 auto" }} />
-            <h3>Drop your log file here or click to browse</h3>
-            <p>Supported formats: auth logs, firewall logs, CSV, JSON</p>
-          </>
+          <div className="py-8">
+            <Upload size={56} className="text-[var(--accent-primary)] mx-auto mb-6 opacity-80" />
+            <h3 className="text-xl font-bold">Transmit Telemetry Package</h3>
+            <p className="text-[var(--text-muted)] mb-6">Drop log bundle here or click to authenticate file selection</p>
+            <div className="flex justify-center gap-3">
+              <span className="format-badge px-3 py-1 bg-[rgba(0,243,255,0.05)] border border-[rgba(0,243,255,0.1)] rounded text-xs font-mono">.LOG</span>
+              <span className="format-badge px-3 py-1 bg-[rgba(0,243,255,0.05)] border border-[rgba(0,243,255,0.1)] rounded text-xs font-mono">.CSV</span>
+              <span className="format-badge px-3 py-1 bg-[rgba(0,243,255,0.05)] border border-[rgba(0,243,255,0.1)] rounded text-xs font-mono">.JSON</span>
+            </div>
+          </div>
         )}
-        <div className="format-badges">
-          <span className="format-badge">.log</span>
-          <span className="format-badge">.csv</span>
-          <span className="format-badge">.json</span>
-          <span className="format-badge">.txt</span>
-        </div>
-      </div>
+      </motion.div>
 
       {/* Success Result */}
-      {result && (
-        <div className="card" style={{ marginTop: 24, borderColor: "var(--success)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-            <CheckCircle size={24} style={{ color: "var(--success)" }} />
-            <h3 style={{ color: "var(--success)" }}>Upload Successful!</h3>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            <div className="stat-card indigo">
-              <div className="stat-value">{result.events_count}</div>
-              <div className="stat-label">Events Parsed</div>
-            </div>
-            <div className="stat-card green">
-              <div className="stat-value" style={{ fontSize: 20, textTransform: "uppercase" }}>
-                {result.log_source}
+      <AnimatePresence>
+        {result && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card mt-12 border-[var(--success)] shadow-[0_0_30px_rgba(16,185,129,0.05)]"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-2 bg-[rgba(16,185,129,0.1)] rounded-full border border-[rgba(16,185,129,0.2)]">
+                <CheckCircle size={28} className="text-[var(--success)]" />
               </div>
-              <div className="stat-label">Source Type</div>
-            </div>
-            <div className="stat-card amber">
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <FileText size={20} style={{ color: "var(--warning)" }} />
-                <span style={{ fontSize: 14 }}>{result.message}</span>
+              <div>
+                <h3 className="text-xl font-bold text-[var(--success)]">Deployment Successful</h3>
+                <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider">Telemetry Indexing Verified</p>
               </div>
             </div>
-          </div>
-          <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-            <a href="/" className="btn btn-primary">View Dashboard</a>
-            <a href="/chat" className="btn btn-outline">Start Investigation</a>
-            <a href="/timeline" className="btn btn-outline">View Timeline</a>
-          </div>
-        </div>
-      )}
 
-      {/* Error */}
-      {error && (
-        <div className="card" style={{ marginTop: 24, borderColor: "var(--danger)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <AlertCircle size={24} style={{ color: "var(--danger)" }} />
-            <p style={{ color: "#fca5a5" }}>{error}</p>
-          </div>
-        </div>
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="stat-card indigo bg-[rgba(0,243,255,0.03)] border-[rgba(0,243,255,0.1)]">
+                <div className="stat-value text-3xl font-bold">{result.events_count?.toLocaleString()}</div>
+                <div className="stat-label text-xs uppercase text-[var(--text-muted)]">Events Indexed</div>
+              </div>
+              <div className="stat-card green bg-[rgba(16,185,129,0.03)] border-[rgba(16,185,129,0.1)]">
+                <div className="stat-value text-xl font-bold uppercase truncate">{result.log_source}</div>
+                <div className="stat-label text-xs uppercase text-[var(--text-muted)]">Schema Detected</div>
+              </div>
+              <div className="stat-card amber bg-[rgba(245,158,11,0.03)] border-[rgba(245,158,11,0.1)] flex items-center gap-3">
+                <Activity size={20} className="text-[var(--warning)]" />
+                <span className="text-sm font-medium">{result.message}</span>
+              </div>
+            </div>
 
-      {/* Actions */}
-      <div style={{ marginTop: 24, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <button className="btn btn-danger" onClick={handleClear}>
-          Clear All Logs
+            <div className="mt-10 flex flex-wrap gap-4 pt-8 border-t border-[var(--border-color)]">
+              <a href="/" className="btn btn-primary px-6 flex items-center gap-2">
+                Launch SOC Dashboard <ArrowRight size={16} />
+              </a>
+              <a href="/chat" className="btn btn-outline px-6">Investigate Alerts</a>
+              <a href="/timeline" className="btn btn-outline px-6">View Event Timeline</a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Auxiliary Actions */}
+      <div className="mt-12 flex flex-wrap gap-6 items-center">
+        <button className="btn btn-danger px-6 py-2.5" onClick={handleClear}>
+          Purge Telemetry Storage
         </button>
         
-        <div style={{ borderLeft: "1px solid var(--border-color)", height: 24, margin: "0 8px", display: "none" }} className="md-divider" />
+        <div className="h-6 w-px bg-[var(--border-color)] hidden md:block" />
         
-        <a href="/sample_auth.log" download className="btn btn-primary" title="Download a sample log to test the system">
-          <FileText size={16} /> Download Sample Log
+        <a href="/sample_auth.log" download className="text-sm flex items-center gap-2 text-[var(--accent-secondary)] hover:text-white transition-colors">
+          <FileText size={16} /> Download Enterprise Sample Deck
         </a>
 
-        <div style={{ 
-          display: "flex", alignItems: "center", gap: 6, fontSize: 12, 
-          color: "var(--success)", background: "rgba(0, 255, 102, 0.08)", 
-          padding: "6px 12px", borderRadius: 4, border: "1px solid rgba(0, 255, 102, 0.2)" 
-        }}>
-          <CheckCircle size={14} /> Safe, synthetic data strictly for demo purposes
+        <div className="hidden lg:flex items-center gap-3 text-[10px] text-[var(--success)] bg-[rgba(16,185,129,0.05)] px-4 py-2 border border-[rgba(16,185,129,0.15)] rounded uppercase font-bold tracking-widest">
+          <Activity size={12} /> Live Environment
         </div>
       </div>
-
-
-    </div>
+    </motion.div>
   );
 }

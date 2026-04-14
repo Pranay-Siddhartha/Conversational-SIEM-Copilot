@@ -11,12 +11,21 @@ if not os.getenv("VERCEL") and not os.path.exists("data"):
     os.makedirs("data")
 
 # Use environment override if provided, else default to Vercel-safe SQLite path
-DATABASE_URL = settings.DATABASE_URL if settings.DATABASE_URL else f"sqlite:///{DB_PATH}"
-
 # Handle SQLite specific connect args
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+# Production-grade engine pooling:
+# - pool_pre_ping: Verifies connection health before use, essential for Supabase/Cloud envs
+# - pool_size: Base connection pool (SaaS-ready)
+# - max_overflow: Allow burst connections
+engine = create_engine(
+    DATABASE_URL,
+    connect_args=connect_args,
+    pool_size=10 if not DATABASE_URL.startswith("sqlite") else None,
+    max_overflow=20 if not DATABASE_URL.startswith("sqlite") else None,
+    pool_pre_ping=True
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
