@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     APP_TITLE: str = "SIEM Copilot API"
     CORS_ORIGINS: list[str] = [
     "http://localhost:3000",
-    "https://conversational-siem-assisstant.vercel.app"
+    "https://conversational-siem-copilot-ten.vercel.app"
 ]
 
     # Database: sqlite:///data/app.db or environment override
