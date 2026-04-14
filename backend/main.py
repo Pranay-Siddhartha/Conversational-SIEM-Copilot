@@ -13,7 +13,7 @@ from backend.db.database import init_db
 app = FastAPI(
     title=settings.APP_TITLE,
     description="Enterprise-grade AI SIEM Copilot SOC platform",
-    version="2.0.0",
+    version="2.0.1", # Triggered production rebuild
 )
 
 # ── CORS ──────────────────────────────────────────────────
