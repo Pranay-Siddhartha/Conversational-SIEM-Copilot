@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.db.database import get_db
-from backend.models import LogEvent
+from backend.db.models import LogEvent
 from backend.schemas import ChatRequest, ChatResponse
 from backend.ai.groq_client import generate_chat_response
 from backend.services.logger import get_logger, log_error

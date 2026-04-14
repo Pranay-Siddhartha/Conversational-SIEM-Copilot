@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, File, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.db.database import get_db
-from backend.models import LogEvent
+from backend.db.models import LogEvent
 from backend.schemas import LogEventOut, LogUploadResponse, DashboardStats
 from backend.services.log_parser import parse_log_file
 from backend.services.logger import get_logger, log_error

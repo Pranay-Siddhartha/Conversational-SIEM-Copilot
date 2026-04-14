@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.db.database import get_db
-from backend.models import LogEvent, Incident
+from backend.db.models import LogEvent, Incident
 from backend.schemas import (
     TimelineResponse, TimelineEvent, PredictionResponse, 
     RiskScoreResponse, AttackChain, AttackChainsResponse
