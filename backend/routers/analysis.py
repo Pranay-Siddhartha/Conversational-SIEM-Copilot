@@ -134,6 +134,14 @@ def get_predictions(db: Session = Depends(get_db)):
 def get_risk_score(db: Session = Depends(get_db)):
     """Calculate overall risk score."""
     events = db.query(LogEvent).all()
+
+    if not events:
+        return RiskScoreResponse(
+            overall_score=0,
+            severity="low",
+            factors=[{"factor": "Empty Telemetry", "detail": "No log events available yet", "impact": 0}]
+        )
+
     event_dicts = [_event_to_dict(e) for e in events]
     threats = detect_threats(event_dicts)
     result = calculate_risk_score(event_dicts, threats)
