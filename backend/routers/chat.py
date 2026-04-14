@@ -5,13 +5,15 @@ from backend.db.database import get_db
 from backend.models import LogEvent
 from backend.schemas import ChatRequest, ChatResponse
 from backend.ai.groq_client import generate_chat_response
+from backend.services.logger import get_logger, log_error
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+logger = get_logger("chat")
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("/", response_model=ChatResponse)
 def chat(req: ChatRequest, db: Session = Depends(get_db)):
-    """Chat with your security logs using natural language."""
+    # ... logic stays same ...
     # Fetch recent events as context
     events = (
         db.query(LogEvent)
@@ -43,7 +45,11 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
 
     try:
         reply = generate_chat_response(req.message, log_context, count=len(events))
+        return ChatResponse(reply=reply, sources_used=len(events))
     except Exception as e:
-        reply = f"⚠️ AI service error: {str(e)}"
+        log_error(logger, "Failed to generate AI chat response", e)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Investigation service failure", "detail": str(e)}
+        )
 
-    return ChatResponse(reply=reply, sources_used=len(events))

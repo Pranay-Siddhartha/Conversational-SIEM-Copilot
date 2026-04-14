@@ -20,18 +20,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
-app.include_router(logs.router)
-app.include_router(chat.router)
-app.include_router(analysis.router)
-app.include_router(reports.router)
+# Routers (standardized with /api prefix at mounting)
+app.include_router(logs.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+app.include_router(analysis.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 
 
 @app.on_event("startup")
 def on_startup():
+    print("DEBUG: Application starting up...")
     init_db()
+    print("DEBUG: Database initialized.")
 
 
+@app.get("/health")
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "SIEM Copilot API"}
+    """Minimal healthcheck for independent runtime verification."""
+    return {
+        "status": "ok",
+        "service": "SIEM Copilot API",
+        "runtime": "Vercel Python"
+    }

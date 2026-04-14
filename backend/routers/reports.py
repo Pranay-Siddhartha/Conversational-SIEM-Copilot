@@ -9,8 +9,10 @@ from backend.schemas import ReportOut, IncidentOut, GenerateReportRequest
 from backend.ai.groq_client import generate_report, predict_next_move, generate_attack_story
 from backend.services.threat_detector import detect_threats
 from backend.services.risk_scorer import calculate_risk_score
+from backend.services.logger import get_logger, log_error
 
-router = APIRouter(prefix="/api/reports", tags=["reports"])
+logger = get_logger("reports")
+router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.post("/generate", response_model=ReportOut)

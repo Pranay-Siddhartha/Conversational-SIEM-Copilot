@@ -8,8 +8,10 @@ from backend.db.database import get_db
 from backend.models import LogEvent
 from backend.schemas import LogEventOut, LogUploadResponse, DashboardStats
 from backend.services.log_parser import parse_log_file
+from backend.services.logger import get_logger, log_error
 
-router = APIRouter(prefix="/api/logs", tags=["logs"])
+logger = get_logger("logs")
+router = APIRouter(prefix="/logs", tags=["logs"])
 
 
 @router.post("/upload", response_model=LogUploadResponse)

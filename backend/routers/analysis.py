@@ -1,16 +1,24 @@
 """Analysis endpoints: timeline, predictions, risk scoring, threats."""
 import json
+import traceback
+from collections import defaultdict
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
 from backend.db.database import get_db
 from backend.models import LogEvent, Incident
-from backend.schemas import TimelineResponse, TimelineEvent, PredictionResponse, RiskScoreResponse, AttackChain, AttackChainsResponse
+from backend.schemas import (
+    TimelineResponse, TimelineEvent, PredictionResponse, 
+    RiskScoreResponse, AttackChain, AttackChainsResponse
+)
 from backend.ai.groq_client import generate_attack_story, predict_next_move
 from backend.services.threat_detector import detect_threats
 from backend.services.risk_scorer import calculate_risk_score
-from collections import defaultdict
+from backend.services.logger import get_logger, log_error
 
-router = APIRouter(prefix="/api/analysis", tags=["analysis"])
+logger = get_logger("analysis")
+router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 
 @router.get("/timeline", response_model=TimelineResponse)
@@ -54,27 +62,32 @@ def get_timeline(db: Session = Depends(get_db)):
         f"[{te.timestamp}] {te.event} (severity: {te.severity})"
         for te in timeline_events[:30]  # Limit for context window
     )
+    
     try:
         story = generate_attack_story(events_text) if timeline_events else {}
+        
+        # Determine overall severity
+        severities = [te.severity for te in timeline_events]
+        if "critical" in severities:
+            overall = "critical"
+        elif "high" in severities:
+            overall = "high"
+        elif "medium" in severities:
+            overall = "medium"
+        else:
+            overall = "low"
+
+        return TimelineResponse(
+            events=timeline_events[:50],
+            ai_narrative=story.get("narrative", "No significant attack pattern detected."),
+            overall_severity=story.get("overall_severity", overall),
+        )
     except Exception as e:
-        story = {"narrative": f"AI analysis unavailable: {str(e)}", "overall_severity": overall if 'overall' in dir() else "high"}
-
-    # Determine overall severity
-    severities = [te.severity for te in timeline_events]
-    if "critical" in severities:
-        overall = "critical"
-    elif "high" in severities:
-        overall = "high"
-    elif "medium" in severities:
-        overall = "medium"
-    else:
-        overall = "low"
-
-    return TimelineResponse(
-        events=timeline_events[:50],
-        ai_narrative=story.get("narrative", "No significant attack pattern detected."),
-        overall_severity=story.get("overall_severity", overall),
-    )
+        log_error(logger, "Failed to generate attack story", e)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Attack story generation failure", "detail": str(e)}
+        )
 
 
 @router.get("/predictions", response_model=PredictionResponse)
@@ -103,20 +116,18 @@ def get_predictions(db: Session = Depends(get_db)):
 
     try:
         result = predict_next_move(timeline_text)
+        return PredictionResponse(
+            predicted_next_move=result.get("predicted_next_move", "Unable to predict"),
+            confidence=result.get("confidence", "medium"),
+            reasoning=result.get("reasoning", ""),
+            recommended_actions=result.get("recommended_actions", []),
+        )
     except Exception as e:
-        result = {
-            "predicted_next_move": f"AI prediction unavailable: {str(e)}",
-            "confidence": "low",
-            "reasoning": "AI service encountered an error.",
-            "recommended_actions": ["Check API key configuration"],
-        }
-
-    return PredictionResponse(
-        predicted_next_move=result.get("predicted_next_move", "Unable to predict"),
-        confidence=result.get("confidence", "medium"),
-        reasoning=result.get("reasoning", ""),
-        recommended_actions=result.get("recommended_actions", []),
-    )
+        log_error(logger, "Failed to generate threat predictions", e)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Threat prediction failure", "detail": str(e)}
+        )
 
 
 @router.get("/risk-score", response_model=RiskScoreResponse)

@@ -8,11 +8,21 @@ from backend.prompts.templates import (
     TIMELINE_PROMPT, PREDICTION_PROMPT, REPORT_PROMPT,
 )
 
+import os
+
 def call_groq(system_prompt: str, user_prompt: str) -> str:
     """Call Groq API using standard urllib for production efficiency."""
-    api_key = settings.GROQ_API_KEY
+    # Robustly fetch key from environment or settings
+    api_key = os.getenv("GROQ_API_KEY") or settings.GROQ_API_KEY
+    
+    # Lightweight runtime logging for Vercel visibility
+    print(f"DEBUG: Groq API client initialized. Key present: {bool(api_key)}")
+    
     if not api_key:
-        raise ValueError("GROQ_API_KEY not configured")
+        print("ERROR: GROQ_API_KEY is missing from environment variables.")
+        raise RuntimeError(
+            "GROQ_API_KEY not configured. Please add it to your Vercel/Environment settings."
+        )
         
     url = "https://api.groq.com/openai/v1/chat/completions"
     
