@@ -4,10 +4,10 @@ from collections import Counter, defaultdict
 from fastapi import APIRouter, UploadFile, File, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.database import get_db
-from app.models import LogEvent
-from app.schemas import LogEventOut, LogUploadResponse, DashboardStats
-from app.services.log_parser import parse_log_file
+from backend.db.database import get_db
+from backend.models import LogEvent
+from backend.schemas import LogEventOut, LogUploadResponse, DashboardStats
+from backend.services.log_parser import parse_log_file
 
 router = APIRouter(prefix="/api/logs", tags=["logs"])
 

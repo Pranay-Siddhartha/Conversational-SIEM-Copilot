@@ -1,10 +1,10 @@
 """Conversational AI chat endpoint."""
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import LogEvent
-from app.schemas import ChatRequest, ChatResponse
-from app.services.ai_service import chat_with_logs
+from backend.db.database import get_db
+from backend.models import LogEvent
+from backend.schemas import ChatRequest, ChatResponse
+from backend.ai.groq_client import generate_chat_response
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -42,7 +42,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     log_context = "\n".join(context_lines)
 
     try:
-        reply = chat_with_logs(req.message, log_context, count=len(events))
+        reply = generate_chat_response(req.message, log_context, count=len(events))
     except Exception as e:
         reply = f"⚠️ AI service error: {str(e)}"
 

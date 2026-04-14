@@ -1,6 +1,6 @@
 import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text, Float, JSON
-from app.database import Base
+from backend.db.database import Base
 
 
 class LogEvent(Base):

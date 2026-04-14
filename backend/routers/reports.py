@@ -3,12 +3,12 @@ import json
 import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import LogEvent, Incident, Report
-from app.schemas import ReportOut, IncidentOut, GenerateReportRequest
-from app.services.ai_service import generate_report, predict_next_move, generate_attack_story
-from app.services.threat_detector import detect_threats
-from app.services.risk_scorer import calculate_risk_score
+from backend.db.database import get_db
+from backend.models import LogEvent, Incident, Report
+from backend.schemas import ReportOut, IncidentOut, GenerateReportRequest
+from backend.ai.groq_client import generate_report, predict_next_move, generate_attack_story
+from backend.services.threat_detector import detect_threats
+from backend.services.risk_scorer import calculate_risk_score
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 

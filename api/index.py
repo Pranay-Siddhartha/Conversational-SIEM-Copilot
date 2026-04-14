@@ -1,12 +1,11 @@
 import sys
 import os
 
-# Add the root and backend directories to sys.path
-# This allows 'from app.main import app' to work if we add 'backend' to path
-path = os.path.join(os.path.dirname(__file__), "..", "backend")
+# Add the root directory to sys.path so 'backend.*' imports work
+path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, path)
 
-from app.main import app
+from backend.main import app
 
-# This is required for Vercel Python functions
-# The 'app' variable is already correctly named for FastAPI
+# This is required for Vercel Python serverless functions
+# The 'app' variable is now correctly imported from backend.main

@@ -2,12 +2,12 @@
 import json
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import LogEvent, Incident
-from app.schemas import TimelineResponse, TimelineEvent, PredictionResponse, RiskScoreResponse, AttackChain, AttackChainsResponse
-from app.services.ai_service import generate_attack_story, predict_next_move
-from app.services.threat_detector import detect_threats
-from app.services.risk_scorer import calculate_risk_score
+from backend.db.database import get_db
+from backend.models import LogEvent, Incident
+from backend.schemas import TimelineResponse, TimelineEvent, PredictionResponse, RiskScoreResponse, AttackChain, AttackChainsResponse
+from backend.ai.groq_client import generate_attack_story, predict_next_move
+from backend.services.threat_detector import detect_threats
+from backend.services.risk_scorer import calculate_risk_score
 from collections import defaultdict
 
 router = APIRouter(prefix="/api/analysis", tags=["analysis"])

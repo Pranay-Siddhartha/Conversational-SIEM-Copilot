@@ -1,9 +1,9 @@
 """SIEM Copilot FastAPI Application."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
-from app.database import init_db
-from app.routers import logs, chat, analysis, reports
+from backend.config import settings
+from backend.db.database import init_db
+from backend.routers import logs, chat, analysis, reports
 
 app = FastAPI(
     title=settings.APP_TITLE,
