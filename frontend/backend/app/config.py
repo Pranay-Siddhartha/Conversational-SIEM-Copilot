@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        "sqlite:///./siem_copilot.db"
+        "sqlite:////tmp/siem_copilot.db" if os.getenv("VERCEL") else "sqlite:///./siem_copilot.db"
     )
 
     # AI Provider: "openai", "gemini", or "groq"
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # App
     APP_TITLE: str = "SIEM Copilot API"
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    CORS_ORIGINS: list[str] = ["*"]
 
     class Config:
         env_file = ".env"
