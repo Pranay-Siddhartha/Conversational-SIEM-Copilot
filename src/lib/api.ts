@@ -13,7 +13,7 @@ const INITIAL_RETRY_DELAY = 1000;
  */
 async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount = 0): Promise<any> {
   const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s SaaS timeout
 
@@ -22,7 +22,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount 
       ...options,
       signal: controller.signal,
       headers: {
-        "Content-Type": "application/json",
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
         ...options.headers,
       },
     });
@@ -30,19 +30,19 @@ async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-        // SaaS Error Handling: Extract JSON error if possible
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.detail || errorData.error || `Error ${response.status}`;
-        
-        // Retry logic for 5xx errors
-        if (response.status >= 500 && retryCount < MAX_RETRIES) {
-            const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-            console.warn(`[API] Server error (${response.status}). Retrying in ${delay}ms...`);
-            await new Promise(res => setTimeout(res, delay));
-            return apiFetch(endpoint, options, retryCount + 1);
-        }
+      // SaaS Error Handling: Extract JSON error if possible
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.detail || errorData.error || `Error ${response.status}`;
 
-        throw new Error(errorMessage);
+      // Retry logic for 5xx errors
+      if (response.status >= 500 && retryCount < MAX_RETRIES) {
+        const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
+        console.warn(`[API] Server error (${response.status}). Retrying in ${delay}ms...`);
+        await new Promise(res => setTimeout(res, delay));
+        return apiFetch(endpoint, options, retryCount + 1);
+      }
+
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -51,15 +51,15 @@ async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount 
     if (error.name === 'AbortError') {
       throw new Error("Request timed out after 30 seconds. Please try again.");
     }
-    
+
     // Retry on network errors
     if (retryCount < MAX_RETRIES) {
-        const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
-        console.warn(`[API] Network error. Retrying in ${delay}ms...`);
-        await new Promise(res => setTimeout(res, delay));
-        return apiFetch(endpoint, options, retryCount + 1);
+      const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
+      console.warn(`[API] Network error. Retrying in ${delay}ms...`);
+      await new Promise(res => setTimeout(res, delay));
+      return apiFetch(endpoint, options, retryCount + 1);
     }
-    
+
     throw error;
   }
 }
