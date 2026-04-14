@@ -21,10 +21,10 @@ app.add_middleware(
 )
 
 # Routers (standardized with /api prefix at mounting)
-app.include_router(logs.router, prefix="/api")
-app.include_router(chat.router, prefix="/api")
-app.include_router(analysis.router, prefix="/api")
-app.include_router(reports.router, prefix="/api")
+app.include_router(logs.router)
+app.include_router(chat.router)
+app.include_router(analysis.router)
+app.include_router(reports.router)
 
 
 @app.on_event("startup")
@@ -35,7 +35,6 @@ def on_startup():
 
 
 @app.get("/health")
-@app.get("/api/health")
 def health():
     """Minimal healthcheck for independent runtime verification."""
     return {

@@ -6,6 +6,7 @@ from backend.models import LogEvent
 from backend.schemas import ChatRequest, ChatResponse
 from backend.ai.groq_client import generate_chat_response
 from backend.services.logger import get_logger, log_error
+from fastapi.responses import JSONResponse
 
 logger = get_logger("chat")
 router = APIRouter(prefix="/chat", tags=["chat"])
