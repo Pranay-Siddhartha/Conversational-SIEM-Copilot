@@ -77,7 +77,7 @@ export async function uploadLog(file: File) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || "Upload failed. Verify file format.");
+    throw new Error(errorData.detail || errorData.error || `HTTP ${response.status}: ${JSON.stringify(errorData)}`);
   }
 
   return response.json();
