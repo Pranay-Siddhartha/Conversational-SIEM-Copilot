@@ -1,9 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, CheckCircle, AlertCircle, FileText, Database, ArrowRight, Activity } from "lucide-react";
-import { uploadLog, clearLogs } from "@/lib/api";
-import { AlertBanner } from "@/components/AlertBanner";
+import { Upload, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import { uploadLog, clearLogs } from "../../../lib/api";
 
 export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
@@ -16,19 +14,13 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
     setResult(null);
-
     try {
       const data = await uploadLog(file);
       setResult(data);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "System encountered an error during telemetry ingestion."
-      );
-    } finally {
-      setUploading(false);
+      setError("Failed to upload. Make sure the backend is running on port 8000.");
     }
+    setUploading(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -39,61 +31,30 @@ export default function UploadPage() {
   };
 
   const handleClear = async () => {
-    if (!confirm("This will permanently purge all telemetry records from Supabase. Proceed?")) return;
     try {
       await clearLogs();
       setResult(null);
       setError("");
-      alert("Telemetry storage purged successfully.");
     } catch {
-      setError("Critical failure while attempting to purge logs.");
+      setError("Failed to clear logs.");
     }
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      className="max-w-[1200px] mx-auto"
-    >
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold flex items-center gap-4 text-[var(--text-primary)] mb-2">
-            <Database className="text-[var(--accent-primary)]" size={32} />
-            Telemetry Ingestion
-        </h1>
-        <p className="text-lg text-[var(--text-muted)] max-w-2xl">Deploy raw security logs to the AI-augmented SOC environment for real-time analysis.</p>
+    <div>
+      <div className="page-header">
+        <h1>📤 Upload Security Logs</h1>
+        <p>Upload auth logs, firewall logs, CSV, or JSON files for analysis</p>
       </div>
 
-      <AnimatePresence>
-        {error && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8">
-            <AlertBanner type="error" message={error} onClose={() => setError("")} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Upload Zone */}
-      <motion.div
-        whileHover={{ scale: 1.002 }}
-        whileTap={{ scale: 0.998 }}
-        className={`upload-zone relative overflow-hidden bg-[rgba(0,243,255,0.02)] border-2 border-dashed ${dragover ? "dragover border-[var(--accent-primary)] bg-[rgba(0,243,255,0.05)]" : "border-[var(--border-color)] hover:border-[var(--accent-primary)] hover:bg-[rgba(0,243,255,0.04)]"}`}
-        style={{ borderRadius: '24px', padding: '64px' }}
+      <div
+        className={`upload-zone ${dragover ? "dragover" : ""}`}
         onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
         onDragLeave={() => setDragover(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
       >
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-[rgba(255,255,255,0.05)]">
-            {uploading && (
-                <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                    className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] shadow-[0_0_15px_var(--accent-primary)]"
-                />
-            )}
-        </div>
-
         <input
           ref={fileRef}
           type="file"
@@ -105,92 +66,76 @@ export default function UploadPage() {
           }}
         />
         {uploading ? (
-          <div className="py-12">
-            <div className="relative inline-block mb-6">
-                <Activity className="animate-spin text-[var(--accent-primary)]" size={64} />
-                <div className="absolute inset-0 bg-[var(--accent-primary)] opacity-20 blur-xl animate-pulse" />
-            </div>
-            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Synchronizing SOC Data...</h3>
-            <p className="text-[var(--text-muted)] text-lg">Parsing headers, normalizing timestamps, and indexing records.</p>
-          </div>
+          <>
+            <div className="spinner" style={{ margin: "0 auto", width: 32, height: 32 }} />
+            <h3 style={{ marginTop: 16 }}>Parsing & Storing Events...</h3>
+          </>
         ) : (
-          <div className="py-12">
-            <div className="p-6 bg-[rgba(0,243,255,0.03)] rounded-full inline-block mb-8 border border-[rgba(0,243,255,0.1)]">
-                <Upload size={64} className="text-[var(--accent-primary)] opacity-90" />
-            </div>
-            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">Transmit Telemetry Package</h3>
-            <p className="text-[var(--text-muted)] text-lg mb-10 max-w-md mx-auto">Drop log bundle here or click to authenticate file selection via secure gateway.</p>
-            <div className="flex justify-center gap-4">
-              {['LOG', 'CSV', 'JSON'].map(ext => (
-                <span key={ext} className="px-5 py-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-lg text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">
-                   {ext}
-                </span>
-              ))}
-            </div>
-          </div>
+          <>
+            <Upload size={48} style={{ color: "var(--accent-primary)", margin: "0 auto" }} />
+            <h3>Drop your log file here or click to browse</h3>
+            <p>Supported formats: auth logs, firewall logs, CSV, JSON</p>
+          </>
         )}
-      </motion.div>
-
-      {/* Success Result */}
-      <AnimatePresence>
-        {result && (
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card mt-16 border-[var(--success)] shadow-[0_20px_60px_rgba(16,185,129,0.05)] p-10"
-          >
-            <div className="flex items-center gap-6 mb-12">
-              <div className="p-4 bg-[rgba(16,185,129,0.1)] rounded-2xl border border-[rgba(16,185,129,0.2)]">
-                <CheckCircle size={32} className="text-[var(--success)]" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-[var(--success)]">Deployment Successful</h3>
-                <p className="text-sm text-[var(--text-muted)] uppercase tracking-widest font-semibold mt-1">Telemetry Indexing Verified</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="stat-card bg-[rgba(0,243,255,0.02)] border-[rgba(0,243,255,0.08)]">
-                <div className="stat-value text-4xl">{result.events_count?.toLocaleString()}</div>
-                <div className="stat-label">Events Indexed</div>
-              </div>
-              <div className="stat-card bg-[rgba(139,92,246,0.02)] border-[rgba(139,92,246,0.08)]">
-                <div className="stat-value text-2xl uppercase truncate text-[var(--accent-secondary)]">{result.log_source}</div>
-                <div className="stat-label">Schema Detected</div>
-              </div>
-              <div className="stat-card bg-[rgba(245,158,11,0.02)] border-[rgba(245,158,11,0.08)] flex items-center gap-4">
-                <Activity size={24} className="text-[var(--warning)] shrink-0" />
-                <span className="text-sm font-semibold opacity-90">{result.message}</span>
-              </div>
-            </div>
-
-            <div className="mt-12 flex flex-wrap gap-5 pt-10 border-t border-[var(--border-color)]">
-              <a href="/" className="btn btn-primary px-8 py-3.5 text-base">
-                SOC Dashboard <ArrowRight size={18} className="ml-1" />
-              </a>
-              <a href="/chat" className="btn btn-outline px-8 py-3.5 text-base">Investigate Alerts</a>
-              <a href="/timeline" className="btn btn-outline px-8 py-3.5 text-base">Event Timeline</a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Auxiliary Actions */}
-      <div className="mt-16 flex flex-wrap gap-8 items-center bg-[rgba(255,255,255,0.01)] p-8 rounded-[24px] border border-[var(--border-color)]">
-        <button className="btn btn-danger px-8 py-3" onClick={handleClear}>
-          Purge Telemetry Storage
-        </button>
-        
-        <div className="h-8 w-px bg-[var(--border-color)] hidden md:block opacity-50" />
-        
-        <a href="/sample_auth.log" download className="text-sm flex items-center gap-2 text-[var(--accent-secondary)] hover:text-white transition-all hover:translate-x-1">
-          <FileText size={18} /> Download Enterprise Sample Deck
-        </a>
-
-        <div className="ml-auto flex items-center gap-3 text-[10px] text-[var(--success)] font-bold tracking-[0.2em] bg-[rgba(16,185,129,0.05)] px-5 py-2.5 rounded-full border border-[rgba(16,185,129,0.2)] uppercase">
-          <Activity size={14} className="animate-pulse" /> Live Ingestion Active
+        <div className="format-badges">
+          <span className="format-badge">.log</span>
+          <span className="format-badge">.csv</span>
+          <span className="format-badge">.json</span>
+          <span className="format-badge">.txt</span>
         </div>
       </div>
-    </motion.div>
+
+      {/* Success Result */}
+      {result && (
+        <div className="card" style={{ marginTop: 24, borderColor: "var(--success)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+            <CheckCircle size={24} style={{ color: "var(--success)" }} />
+            <h3 style={{ color: "var(--success)" }}>Upload Successful!</h3>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div className="stat-card indigo">
+              <div className="stat-value">{result.events_count}</div>
+              <div className="stat-label">Events Parsed</div>
+            </div>
+            <div className="stat-card green">
+              <div className="stat-value" style={{ fontSize: 20, textTransform: "uppercase" }}>
+                {result.log_source}
+              </div>
+              <div className="stat-label">Source Type</div>
+            </div>
+            <div className="stat-card amber">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FileText size={20} style={{ color: "var(--warning)" }} />
+                <span style={{ fontSize: 14 }}>{result.message}</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
+            <a href="/" className="btn btn-primary">View Dashboard</a>
+            <a href="/chat" className="btn btn-outline">Start Investigation</a>
+            <a href="/timeline" className="btn btn-outline">View Timeline</a>
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="card" style={{ marginTop: 24, borderColor: "var(--danger)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <AlertCircle size={24} style={{ color: "var(--danger)" }} />
+            <p style={{ color: "#fca5a5" }}>{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+        <button className="btn btn-danger" onClick={handleClear}>
+          Clear All Logs
+        </button>
+      </div>
+
+
+    </div>
   );
 }

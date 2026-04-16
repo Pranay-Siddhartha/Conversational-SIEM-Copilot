@@ -1,6 +1,5 @@
 """Analysis endpoints: timeline, predictions, risk scoring, threats."""
 import json
-import hashlib
 import traceback
 from collections import defaultdict
 from fastapi import APIRouter, Depends
@@ -10,7 +9,7 @@ from sqlalchemy.orm import Session
 from backend.db.database import get_db
 from backend.db.models import LogEvent, Incident
 from backend.schemas import (
-    TimelineResponse, TimelineEvent, PredictionResponse,
+    TimelineResponse, TimelineEvent, PredictionResponse, 
     RiskScoreResponse, AttackChain, AttackChainsResponse
 )
 from backend.ai.groq_client import generate_attack_story, predict_next_move
@@ -21,46 +20,6 @@ from backend.services.logger import get_logger, log_error
 logger = get_logger("analysis")
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
-# ── IN-MEMORY CACHE ───────────────────────────────────────
-# Stores AI results keyed by a hash of the events text.
-# Cleared only when logs change (upload/clear).
-# This prevents re-calling Groq on every page load/refresh.
-_ai_cache: dict[str, dict] = {}
-
-
-def _cache_key(prefix: str, text: str) -> str:
-    """Generate a stable cache key from event text."""
-    digest = hashlib.md5(text.encode()).hexdigest()
-    return f"{prefix}:{digest}"
-
-
-def _cached_generate_attack_story(events_text: str) -> dict:
-    key = _cache_key("story", events_text)
-    if key not in _ai_cache:
-        logger.info(f"[cache miss] generate_attack_story — calling Groq")
-        _ai_cache[key] = generate_attack_story(events_text)
-    else:
-        logger.info(f"[cache hit] generate_attack_story — skipping Groq call")
-    return _ai_cache[key]
-
-
-def _cached_predict_next_move(events_text: str) -> dict:
-    key = _cache_key("pred", events_text)
-    if key not in _ai_cache:
-        logger.info(f"[cache miss] predict_next_move — calling Groq")
-        _ai_cache[key] = predict_next_move(events_text)
-    else:
-        logger.info(f"[cache hit] predict_next_move — skipping Groq call")
-    return _ai_cache[key]
-
-
-def clear_ai_cache():
-    """Call this whenever logs are uploaded or cleared."""
-    _ai_cache.clear()
-    logger.info("[cache] AI cache cleared")
-
-
-# ── TIMELINE ─────────────────────────────────────────────
 
 @router.get("/timeline", response_model=TimelineResponse)
 def get_timeline(db: Session = Depends(get_db)):
@@ -78,9 +37,11 @@ def get_timeline(db: Session = Depends(get_db)):
             overall_severity="info",
         )
 
+    # Find suspicious events for the timeline
     event_dicts = [_event_to_dict(e) for e in events]
     threats = detect_threats(event_dicts)
 
+    # Build timeline events from suspicious activity
     timeline_events = []
     seen = set()
     for e in events:
@@ -96,19 +57,25 @@ def get_timeline(db: Session = Depends(get_db)):
                     details=e.raw_line[:200] if e.raw_line else None,
                 ))
 
+    # Generate AI narrative
     events_text = "\n".join(
         f"[{te.timestamp}] {te.event} (severity: {te.severity})"
-        for te in timeline_events[:30]
+        for te in timeline_events[:30]  # Limit for context window
     )
-
+    
     try:
-        story = _cached_generate_attack_story(events_text) if timeline_events else {}
-
+        story = generate_attack_story(events_text) if timeline_events else {}
+        
+        # Determine overall severity
         severities = [te.severity for te in timeline_events]
-        if "critical" in severities: overall = "critical"
-        elif "high" in severities: overall = "high"
-        elif "medium" in severities: overall = "medium"
-        else: overall = "low"
+        if "critical" in severities:
+            overall = "critical"
+        elif "high" in severities:
+            overall = "high"
+        elif "medium" in severities:
+            overall = "medium"
+        else:
+            overall = "low"
 
         return TimelineResponse(
             events=timeline_events[:50],
@@ -123,8 +90,6 @@ def get_timeline(db: Session = Depends(get_db)):
         )
 
 
-# ── PREDICTIONS ──────────────────────────────────────────
-
 @router.get("/predictions", response_model=PredictionResponse)
 def get_predictions(db: Session = Depends(get_db)):
     """Predict attacker's next move based on observed patterns."""
@@ -138,6 +103,7 @@ def get_predictions(db: Session = Depends(get_db)):
             recommended_actions=["Upload security logs to get started"],
         )
 
+    # Build timeline summary for prediction
     timeline_text = "\n".join(
         f"[{e.timestamp.strftime('%H:%M:%S') if e.timestamp else '??:??'}] "
         f"{e.action or 'event'} | user={e.username or '-'} | ip={e.source_ip or '-'} | status={e.status or '-'}"
@@ -149,7 +115,7 @@ def get_predictions(db: Session = Depends(get_db)):
         timeline_text = "No significant threats detected in current log data."
 
     try:
-        result = _cached_predict_next_move(timeline_text)
+        result = predict_next_move(timeline_text)
         return PredictionResponse(
             predicted_next_move=result.get("predicted_next_move", "Unable to predict"),
             confidence=result.get("confidence", "medium"),
@@ -163,8 +129,6 @@ def get_predictions(db: Session = Depends(get_db)):
             content={"error": "Threat prediction failure", "detail": str(e)}
         )
 
-
-# ── RISK SCORE ───────────────────────────────────────────
 
 @router.get("/risk-score", response_model=RiskScoreResponse)
 def get_risk_score(db: Session = Depends(get_db)):
@@ -189,8 +153,6 @@ def get_risk_score(db: Session = Depends(get_db)):
     )
 
 
-# ── THREATS ──────────────────────────────────────────────
-
 @router.get("/threats")
 def get_threats(db: Session = Depends(get_db)):
     """Get detected threats from stored logs."""
@@ -199,8 +161,6 @@ def get_threats(db: Session = Depends(get_db)):
     threats = detect_threats(event_dicts)
     return {"threats": threats, "count": len(threats)}
 
-
-# ── ATTACK CHAINS ────────────────────────────────────────
 
 @router.get("/chains", response_model=AttackChainsResponse)
 def get_attack_chains(db: Session = Depends(get_db)):
@@ -215,25 +175,28 @@ def get_attack_chains(db: Session = Depends(get_db)):
         if e.severity in ("high", "critical") or e.status == "failure" or (e.action and "escalat" in e.action.lower()):
             ip = e.source_ip or "unknown_ip"
             chains_dict[ip].append(e)
-
+            
     # 2. Build chains
     attack_chains = []
     chain_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     idx = 0
 
     for ip, ip_events in chains_dict.items():
-        if not ip_events:
+        if len(ip_events) == 0:
             continue
-
+            
+        # Determine primary attack type
         actions = [e.action for e in ip_events if e.action]
         primary_action = max(set(actions), key=actions.count) if actions else "Suspicious Activity"
-
+        
+        # Determine chain severity
         severities = [e.severity for e in ip_events]
         if "critical" in severities: severity = "critical"
         elif "high" in severities: severity = "high"
         elif "medium" in severities: severity = "medium"
         else: severity = "low"
 
+        # Build timeline
         timeline_events = []
         seen = set()
         for e in ip_events:
@@ -248,19 +211,19 @@ def get_attack_chains(db: Session = Depends(get_db)):
                     details=e.raw_line[:200] if e.raw_line else None,
                 ))
 
+        # Build textual context for AI
         events_text = "\n".join(
             f"[{te.timestamp}] {te.event} from {ip} (severity: {te.severity})"
             for te in timeline_events[:30]
         )
 
-        # ── CACHED AI CALLS (no repeat Groq hits on refresh) ──
         try:
-            story = _cached_generate_attack_story(events_text) if timeline_events else {}
+            story = generate_attack_story(events_text) if timeline_events else {}
         except Exception as e:
             story = {"narrative": f"AI narrative error: {str(e)}"}
 
         try:
-            pred_res = _cached_predict_next_move(events_text) if timeline_events else {}
+            pred_res = predict_next_move(events_text) if timeline_events else {}
         except Exception as e:
             pred_res = {
                 "predicted_next_move": f"Prediction error: {str(e)}",
@@ -287,16 +250,12 @@ def get_attack_chains(db: Session = Depends(get_db)):
         ))
         idx += 1
 
+    # Sort chains by severity (critical first) and then by event count
     severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
-    attack_chains.sort(
-        key=lambda c: (severity_rank.get(c.severity.lower(), 0), len(c.timeline)),
-        reverse=True
-    )
+    attack_chains.sort(key=lambda c: (severity_rank.get(c.severity.lower(), 0), len(c.timeline)), reverse=True)
 
     return AttackChainsResponse(chains=attack_chains)
 
-
-# ── HELPERS ──────────────────────────────────────────────
 
 def _event_to_dict(e: LogEvent) -> dict:
     return {

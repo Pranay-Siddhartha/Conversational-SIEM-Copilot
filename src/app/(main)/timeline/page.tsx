@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Clock, AlertTriangle, Zap, ShieldAlert, Activity } from "lucide-react";
-import { getAttackChains } from "@/lib/api";
+import { getAttackChains } from "../../../lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -118,7 +118,7 @@ export default function TimelinePage() {
             {prediction.recommended_actions?.length > 0 && (
               <div>
                 <h4 style={{ fontSize: 13, fontWeight: 600, color: "var(--warning)", marginBottom: 8 }}>
-                  ⚠️ Recommended Mitigations:
+                  ⚡ Recommended Mitigations:
                 </h4>
                 <ul style={{ paddingLeft: 20 }}>
                   {prediction.recommended_actions.map((a: string, i: number) => (

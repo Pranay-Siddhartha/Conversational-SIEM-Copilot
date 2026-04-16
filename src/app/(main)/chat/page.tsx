@@ -1,10 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, Bot, User } from "lucide-react";
-import { sendChat } from "@/lib/api";
+import { sendChat } from "../../../lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { motion } from "framer-motion";
 
 interface Message {
   role: "user" | "assistant";
@@ -45,118 +44,75 @@ export default function ChatPage() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "⚠️ Error connecting to investigation service. Please try again later." },
+        { role: "assistant", content: "⚠️ Error connecting to backend. Make sure the API is running on port 8000." },
       ]);
     }
     setLoading(false);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 96px)' }}>
-
-      <div className="mb-8" style={{marginBottom : "20px"}}>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-4">
-          <Bot className="text-[var(--accent-primary)]" size={50} />
-          Investigation Copilot
-        </h1>
-        <p className="text-ml text-[var(--text-muted)] max-w-2xl">
-          Query telemetry and synthesize threat intelligence in natural language.
-        </p>
+    <div className="chat-container">
+      <div className="page-header">
+        <h1>💬 Threat Investigation Chat</h1>
+        <p>Ask questions about your security logs in plain English</p>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
-        className="bg-[rgba(255,255,255,0.01)] border border-[var(--border-color)] rounded-[32px] overflow-hidden backdrop-blur-sm"
-      >
-        <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="relative mb-8" style={{marginTop :"35px"}}>
-                <Sparkles size={80} className="text-[var(--accent-primary)] opacity-20" />
-                <Bot size={40} className="text-[var(--accent-primary)] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">Initiate Tactical Inquiry</h3>
-              <p className="text-[var(--text-muted)] text-lg mb-12 max-w-md" style={{marginBottom:"20px"}}>
-                Interrogate security logs to uncover latent threats or performance anomalies.
-              </p>
-              <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    className="chip px-5 py-2.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl hover:border-[var(--accent-primary)] hover:bg-[rgba(0,243,255,0.05)] transition-all text-sm font-medium"
-                    onClick={() => handleSend(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] ${msg.role === 'user'
-                ? 'bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white p-6 rounded-2xl rounded-tr-none shadow-lg'
-                : 'bg-[var(--bg-card)] border border-[var(--border-color)] p-8 rounded-3xl rounded-tl-none'}`}
-              >
-                <div className="flex items-center gap-3 mb-4 opacity-70">
-                  {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
-                    {msg.role === "user" ? "Lead Analyst" : "SIEM Intelligence"}
-                  </span>
-                </div>
-                <div className={`text-base leading-relaxed ${msg.role === 'assistant'
-                  ? 'prose prose-invert prose-sm max-w-none text-[var(--text-secondary)]'
-                  : 'font-medium'}`}
-                >
-                  {msg.role === "assistant" ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                  ) : (
-                    msg.content
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] p-6 rounded-3xl rounded-tl-none flex items-center gap-4">
-                <div className="spinner" />
-                <span className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest animate-pulse">
-                  Synthesizing Logs...
-                </span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEnd} />
-        </div>
-
-        <div className="p-8 border-t border-[var(--border-color)] bg-[rgba(0,0,0,0.2)]">
-          <div className="relative flex items-center gap-4 max-w-8xl mx-auto">
-            <input
-              className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-2xl py-4 px-6 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] transition-all placeholder:text-[var(--text-muted)]"
-              style={{padding:"20px", margin:"10px"}} 
-              placeholder="Ask about your security logs (e.g., 'Summarize admin events from last night')..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              disabled={loading}
-            />
-            <button
-              className="absolute right-2 p-3 bg-[var(--accent-primary)] text-black rounded-xl hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
-              onClick={() => handleSend()}
-              disabled={loading || !input.trim()}
-              style={{padding:"10px", margin:"10px"}}
-            >
-              <Send size={20} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
-          <div className="mt-4 flex justify-center gap-6 text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50" style={{paddingBottom:"10px"}}>
-            <span>Powered by Groq-70B</span>
-            <span>Real-time Telemetry Context</span>
-            <span>Encrypted Response Loop</span>
+      {messages.length === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <Sparkles size={48} style={{ color: "var(--accent-primary)", margin: "0 auto 16px" }} />
+          <h3 style={{ fontSize: 18, marginBottom: 8 }}>Start your investigation</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 20 }}>
+            Ask me anything about your uploaded security logs
+          </p>
+          <div className="suggestion-chips" style={{ justifyContent: "center" }}>
+            {SUGGESTIONS.map((s) => (
+              <button key={s} className="chip" onClick={() => handleSend(s)}>
+                {s}
+              </button>
+            ))}
           </div>
         </div>
+      )}
+
+      <div className="chat-messages">
+        {messages.map((msg, i) => (
+          <div key={i} className={`chat-bubble ${msg.role}`}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, opacity: 0.7, fontSize: 11 }}>
+              {msg.role === "user" ? <User size={14} /> : <Bot size={14} />}
+              {msg.role === "user" ? "You" : "SIEM Copilot"}
+            </div>
+            {msg.role === "assistant" ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+            ) : (
+              msg.content
+            )}
+          </div>
+        ))}
+        {loading && (
+          <div className="chat-bubble assistant" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="spinner" />
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Analyzing logs...</span>
+          </div>
+        )}
+        <div ref={messagesEnd} />
+      </div>
+
+      <div className="chat-input-area">
+        <input
+          className="chat-input"
+          placeholder="Ask about your security logs..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          disabled={loading}
+        />
+        <button
+          className="btn btn-primary"
+          onClick={() => handleSend()}
+          disabled={loading || !input.trim()}
+        >
+          <Send size={16} />
+        </button>
       </div>
     </div>
   );
