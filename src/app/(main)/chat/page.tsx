@@ -52,18 +52,14 @@ export default function ChatPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="max-w-[1000px] mx-auto"
-      style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 96px)' }}
-    >
-      <div className="mb-8 shrink-0">
-        <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-4">
-          <Bot className="text-[var(--accent-primary)]" size={32} />
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 96px)' }}>
+
+      <div className="mb-8" style={{marginBottom : "20px"}}>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-4">
+          <Bot className="text-[var(--accent-primary)]" size={50} />
           Investigation Copilot
         </h1>
-        <p className="text-lg text-[var(--text-muted)] max-w-2xl">
+        <p className="text-ml text-[var(--text-muted)] max-w-2xl">
           Query telemetry and synthesize threat intelligence in natural language.
         </p>
       </div>
@@ -74,12 +70,12 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="relative mb-8">
+              <div className="relative mb-8" style={{marginTop :"35px"}}>
                 <Sparkles size={80} className="text-[var(--accent-primary)] opacity-20" />
                 <Bot size={40} className="text-[var(--accent-primary)] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
               </div>
               <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">Initiate Tactical Inquiry</h3>
-              <p className="text-[var(--text-muted)] text-lg mb-12 max-w-md">
+              <p className="text-[var(--text-muted)] text-lg mb-12 max-w-md" style={{marginBottom:"20px"}}>
                 Interrogate security logs to uncover latent threats or performance anomalies.
               </p>
               <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
@@ -135,10 +131,11 @@ export default function ChatPage() {
           <div ref={messagesEnd} />
         </div>
 
-        <div className="shrink-0 p-8 border-t border-[var(--border-color)] bg-[rgba(0,0,0,0.2)]">
-          <div className="relative flex items-center gap-4 max-w-4xl mx-auto">
+        <div className="p-8 border-t border-[var(--border-color)] bg-[rgba(0,0,0,0.2)]">
+          <div className="relative flex items-center gap-4 max-w-8xl mx-auto">
             <input
               className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-2xl py-4 px-6 text-base text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] transition-all placeholder:text-[var(--text-muted)]"
+              style={{padding:"20px", margin:"10px"}} 
               placeholder="Ask about your security logs (e.g., 'Summarize admin events from last night')..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -149,17 +146,18 @@ export default function ChatPage() {
               className="absolute right-2 p-3 bg-[var(--accent-primary)] text-black rounded-xl hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
+              style={{padding:"10px", margin:"10px"}}
             >
               <Send size={20} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
-          <div className="mt-4 flex justify-center gap-6 text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50">
+          <div className="mt-4 flex justify-center gap-6 text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest opacity-50" style={{paddingBottom:"10px"}}>
             <span>Powered by Groq-70B</span>
             <span>Real-time Telemetry Context</span>
             <span>Encrypted Response Loop</span>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

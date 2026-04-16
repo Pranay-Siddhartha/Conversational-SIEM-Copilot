@@ -2,7 +2,7 @@
  * SIEM Copilot Enterprise API Client
  * Production-ready bridge with exponential backoff retries and timeout protection.
  */
-
+console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
 const BASE_URL =
   `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api`;
 const MAX_RETRIES = 3;
