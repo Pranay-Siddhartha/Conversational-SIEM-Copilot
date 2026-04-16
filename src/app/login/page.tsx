@@ -263,6 +263,31 @@ export default function LoginPage() {
                   INITIALIZE TERMINAL
                 </button>
               </form>
+
+              {/* ── Demo Credentials Hint ── */}
+              <div style={{
+                marginTop: 24,
+                padding: "12px 16px",
+                background: "rgba(0, 243, 255, 0.03)",
+                border: "1px solid rgba(0, 243, 255, 0.1)",
+                borderRadius: 4,
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: 10,
+                  color: "var(--accent-primary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  fontWeight: 600,
+                  marginBottom: 4
+                }}>
+                  Public Access Details
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  ID: <code style={{ color: "var(--text-primary)", fontWeight: 600 }}>admin</code> &nbsp; 
+                  Pass: <code style={{ color: "var(--text-primary)", fontWeight: 600 }}>root123</code>
+                </div>
+              </div>
             </div>
           </div>
 
