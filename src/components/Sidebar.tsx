@@ -2,15 +2,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  LayoutDashboard,
-  MessageSquare,
-  Clock,
-  FileText,
-  Upload,
-  Shield,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, MessageSquare, Clock, FileText, Upload, Shield, LogOut } from "lucide-react";
+import { getAnalyst, setAnalyst } from "@/lib/api";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -26,7 +19,7 @@ export default function Sidebar() {
   const [username, setUsername] = useState<string>("Analyst");
 
   useEffect(() => {
-    const user = localStorage.getItem("siem_username");
+    const user = getAnalyst();
     if (user) setUsername(user);
   }, []);
 
@@ -67,7 +60,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => {
-              localStorage.removeItem("siem_username");
+              setAnalyst(null);
               router.push("/login");
             }}
             style={{

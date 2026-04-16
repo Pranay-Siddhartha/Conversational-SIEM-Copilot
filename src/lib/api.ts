@@ -3,6 +3,16 @@
  * Production-ready bridge with exponential backoff retries and timeout protection.
  */
 console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
+let currentAnalyst: string | null = null;
+
+export function setAnalyst(name: string | null) {
+  currentAnalyst = name;
+}
+
+export function getAnalyst(): string | null {
+  return currentAnalyst;
+}
+
 const BASE_URL =
   `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api`;
 const MAX_RETRIES = 3;

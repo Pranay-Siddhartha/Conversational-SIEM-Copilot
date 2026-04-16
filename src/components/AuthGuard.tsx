@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getAnalyst } from "@/lib/api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const user = localStorage.getItem("siem_username");
+    const user = getAnalyst();
     if (!user) {
       router.push("/login");
     } else {
