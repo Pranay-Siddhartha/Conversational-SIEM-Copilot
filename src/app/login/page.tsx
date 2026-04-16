@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Shield, Terminal } from "lucide-react";
 import RotatingText from "@/components/RotatingText";
 import TextType from "@/components/TextType";
-import { setAnalyst } from "@/lib/api";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -25,7 +24,7 @@ export default function LoginPage() {
     }
 
     if (username.trim().length > 0) {
-      setAnalyst(username.trim());
+      localStorage.setItem("siem_username", username.trim());
       router.push("/");
     }
   };
