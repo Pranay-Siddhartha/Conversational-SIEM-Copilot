@@ -14,18 +14,51 @@ from backend.prompts.templates import (
 )
 
 
+def _sanitize(text: str) -> str:
+    """Strip control characters that break JSON serialization."""
+    if not text:
+        return text
+    # Remove all control chars except tab, newline, carriage return
+    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+
+
+def _safe_json_loads(raw: str) -> dict | None:
+    """Extract and parse JSON from AI response, sanitizing control chars first."""
+    json_match = re.search(r"\{[\s\S]*\}", raw)
+    if not json_match:
+        return None
+
+    json_str = json_match.group()
+
+    # First attempt: parse as-is
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        pass
+
+    # Second attempt: sanitize control characters then parse
+    try:
+        return json.loads(_sanitize(json_str))
+    except json.JSONDecodeError:
+        pass
+
+    # Third attempt: encode/decode round-trip to normalize escaping
+    try:
+        normalized = json_str.encode('utf-8', errors='ignore').decode('utf-8')
+        return json.loads(normalized)
+    except json.JSONDecodeError:
+        return None
+
+
 def call_groq(system_prompt: str, user_prompt: str) -> str:
-    """Call Groq API using lightweight urllib (Vercel-safe)."""
+    """Call Groq API using lightweight urllib (Railway-safe)."""
 
-    # Safe key loading
     api_key = os.getenv("GROQ_API_KEY") or getattr(settings, "GROQ_API_KEY", None)
-
-    # Debug visibility in Vercel logs
     print(f"DEBUG: Groq API initialized. Key present: {bool(api_key)}")
 
     if not api_key:
         raise RuntimeError(
-            "GROQ_API_KEY is missing. Add it in Vercel Project Settings → Environment Variables."
+            "GROQ_API_KEY is missing. Add it in Railway/Vercel Project Settings → Environment Variables."
         )
 
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -87,12 +120,14 @@ def generate_attack_story(events_text: str) -> dict:
     prompt = TIMELINE_PROMPT.format(events=events_text)
     raw = call_groq(CHAT_SYSTEM_PROMPT, prompt)
 
-    json_match = re.search(r"\{[\s\S]*\}", raw)
-    if json_match:
-        return json.loads(json_match.group())
+    parsed = _safe_json_loads(raw)
+    if parsed:
+        # Sanitize all string values in the parsed dict
+        return {k: _sanitize(v) if isinstance(v, str) else v for k, v in parsed.items()}
 
+    # Fallback: return sanitized raw text as narrative
     return {
-        "narrative": raw,
+        "narrative": _sanitize(raw),
         "overall_severity": "high",
     }
 
@@ -102,14 +137,17 @@ def predict_next_move(timeline_text: str) -> dict:
     prompt = PREDICTION_PROMPT.format(timeline=timeline_text)
     raw = call_groq(CHAT_SYSTEM_PROMPT, prompt)
 
-    json_match = re.search(r"\{[\s\S]*\}", raw)
-    if json_match:
-        return json.loads(json_match.group())
+    parsed = _safe_json_loads(raw)
+    if parsed:
+        # Sanitize all string values in the parsed dict
+        return {k: _sanitize(v) if isinstance(v, str) else v for k, v in parsed.items()}
 
+    # Fallback: return sanitized raw text
     return {
-        "predicted_next_move": raw[:200],
+        "predicted_next_move": _sanitize(raw[:200]),
         "confidence": "medium",
-        "reasoning": raw,
+        "reasoning": _sanitize(raw),
+        "recommended_actions": [],
     }
 
 

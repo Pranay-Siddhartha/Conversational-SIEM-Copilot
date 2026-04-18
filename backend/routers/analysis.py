@@ -1,5 +1,6 @@
 """Analysis endpoints: timeline, predictions, risk scoring, threats."""
 import json
+import re
 import hashlib
 import traceback
 from collections import defaultdict
@@ -13,7 +14,7 @@ from backend.schemas import (
     TimelineResponse, TimelineEvent, PredictionResponse,
     RiskScoreResponse, AttackChain, AttackChainsResponse
 )
-from backend.ai.groq_client import generate_attack_story, predict_next_move
+from backend.ai.groq_client import generate_attack_story, predict_next_move, _sanitize
 from backend.services.threat_detector import detect_threats
 from backend.services.risk_scorer import calculate_risk_score
 from backend.services.logger import get_logger, log_error
@@ -22,14 +23,10 @@ logger = get_logger("analysis")
 router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 # ── IN-MEMORY CACHE ───────────────────────────────────────
-# Stores AI results keyed by a hash of the events text.
-# Cleared only when logs change (upload/clear).
-# This prevents re-calling Groq on every page load/refresh.
 _ai_cache: dict[str, dict] = {}
 
 
 def _cache_key(prefix: str, text: str) -> str:
-    """Generate a stable cache key from event text."""
     digest = hashlib.md5(text.encode()).hexdigest()
     return f"{prefix}:{digest}"
 
@@ -37,20 +34,30 @@ def _cache_key(prefix: str, text: str) -> str:
 def _cached_generate_attack_story(events_text: str) -> dict:
     key = _cache_key("story", events_text)
     if key not in _ai_cache:
-        logger.info(f"[cache miss] generate_attack_story — calling Groq")
-        _ai_cache[key] = generate_attack_story(events_text)
+        logger.info("[cache miss] generate_attack_story — calling Groq")
+        result = generate_attack_story(events_text)
+        # Sanitize all string values at cache-write time
+        _ai_cache[key] = {
+            k: _sanitize(v) if isinstance(v, str) else v
+            for k, v in result.items()
+        }
     else:
-        logger.info(f"[cache hit] generate_attack_story — skipping Groq call")
+        logger.info("[cache hit] generate_attack_story — skipping Groq call")
     return _ai_cache[key]
 
 
 def _cached_predict_next_move(events_text: str) -> dict:
     key = _cache_key("pred", events_text)
     if key not in _ai_cache:
-        logger.info(f"[cache miss] predict_next_move — calling Groq")
-        _ai_cache[key] = predict_next_move(events_text)
+        logger.info("[cache miss] predict_next_move — calling Groq")
+        result = predict_next_move(events_text)
+        # Sanitize all string values at cache-write time
+        _ai_cache[key] = {
+            k: _sanitize(v) if isinstance(v, str) else v
+            for k, v in result.items()
+        }
     else:
-        logger.info(f"[cache hit] predict_next_move — skipping Groq call")
+        logger.info("[cache hit] predict_next_move — skipping Groq call")
     return _ai_cache[key]
 
 
@@ -91,9 +98,9 @@ def get_timeline(db: Session = Depends(get_db)):
                 seen.add(key)
                 timeline_events.append(TimelineEvent(
                     timestamp=ts_str,
-                    event=f"{e.action or 'event'} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}",
+                    event=_sanitize(f"{e.action or 'event'} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}"),
                     severity=e.severity or "medium",
-                    details=e.raw_line[:200] if e.raw_line else None,
+                    details=_sanitize(e.raw_line[:200]) if e.raw_line else None,
                 ))
 
     events_text = "\n".join(
@@ -105,15 +112,19 @@ def get_timeline(db: Session = Depends(get_db)):
         story = _cached_generate_attack_story(events_text) if timeline_events else {}
 
         severities = [te.severity for te in timeline_events]
-        if "critical" in severities: overall = "critical"
-        elif "high" in severities: overall = "high"
-        elif "medium" in severities: overall = "medium"
-        else: overall = "low"
+        if "critical" in severities:
+            overall = "critical"
+        elif "high" in severities:
+            overall = "high"
+        elif "medium" in severities:
+            overall = "medium"
+        else:
+            overall = "low"
 
         return TimelineResponse(
             events=timeline_events[:50],
-            ai_narrative=story.get("narrative", "No significant attack pattern detected."),
-            overall_severity=story.get("overall_severity", overall),
+            ai_narrative=_sanitize(story.get("narrative", "No significant attack pattern detected.")),
+            overall_severity=_sanitize(story.get("overall_severity", overall)),
         )
     except Exception as e:
         log_error(logger, "Failed to generate attack story", e)
@@ -151,10 +162,12 @@ def get_predictions(db: Session = Depends(get_db)):
     try:
         result = _cached_predict_next_move(timeline_text)
         return PredictionResponse(
-            predicted_next_move=result.get("predicted_next_move", "Unable to predict"),
-            confidence=result.get("confidence", "medium"),
-            reasoning=result.get("reasoning", ""),
-            recommended_actions=result.get("recommended_actions", []),
+            predicted_next_move=_sanitize(result.get("predicted_next_move", "Unable to predict")),
+            confidence=_sanitize(result.get("confidence", "medium")),
+            reasoning=_sanitize(result.get("reasoning", "")),
+            recommended_actions=[
+                _sanitize(a) for a in result.get("recommended_actions", [])
+            ],
         )
     except Exception as e:
         log_error(logger, "Failed to generate threat predictions", e)
@@ -229,10 +242,14 @@ def get_attack_chains(db: Session = Depends(get_db)):
         primary_action = max(set(actions), key=actions.count) if actions else "Suspicious Activity"
 
         severities = [e.severity for e in ip_events]
-        if "critical" in severities: severity = "critical"
-        elif "high" in severities: severity = "high"
-        elif "medium" in severities: severity = "medium"
-        else: severity = "low"
+        if "critical" in severities:
+            severity = "critical"
+        elif "high" in severities:
+            severity = "high"
+        elif "medium" in severities:
+            severity = "medium"
+        else:
+            severity = "low"
 
         timeline_events = []
         seen = set()
@@ -243,9 +260,9 @@ def get_attack_chains(db: Session = Depends(get_db)):
                 seen.add(key)
                 timeline_events.append(TimelineEvent(
                     timestamp=ts_str,
-                    event=f"{e.action or 'event'} by {e.username or 'unknown'}",
+                    event=_sanitize(f"{e.action or 'event'} by {e.username or 'unknown'}"),
                     severity=e.severity or "medium",
-                    details=e.raw_line[:200] if e.raw_line else None,
+                    details=_sanitize(e.raw_line[:200]) if e.raw_line else None,
                 ))
 
         events_text = "\n".join(
@@ -253,44 +270,45 @@ def get_attack_chains(db: Session = Depends(get_db)):
             for te in timeline_events[:30]
         )
 
-        # ── CACHED AI CALLS (no repeat Groq hits on refresh) ──
         try:
             story = _cached_generate_attack_story(events_text) if timeline_events else {}
         except Exception as e:
-            story = {"narrative": f"AI narrative error: {str(e)}"}
+            story = {"narrative": f"AI narrative error: {_sanitize(str(e))}"}
 
         try:
             pred_res = _cached_predict_next_move(events_text) if timeline_events else {}
         except Exception as e:
             pred_res = {
-                "predicted_next_move": f"Prediction error: {str(e)}",
+                "predicted_next_move": f"Prediction error: {_sanitize(str(e))}",
                 "confidence": "low",
                 "reasoning": "AI error.",
                 "recommended_actions": []
             }
 
         prediction = PredictionResponse(
-            predicted_next_move=pred_res.get("predicted_next_move", "Unknown"),
-            confidence=pred_res.get("confidence", "low"),
-            reasoning=pred_res.get("reasoning", ""),
-            recommended_actions=pred_res.get("recommended_actions", [])
+            predicted_next_move=_sanitize(pred_res.get("predicted_next_move", "Unknown")),
+            confidence=_sanitize(pred_res.get("confidence", "low")),
+            reasoning=_sanitize(pred_res.get("reasoning", "")),
+            recommended_actions=[
+                _sanitize(a) for a in pred_res.get("recommended_actions", [])
+            ],
         )
 
         attack_chains.append(AttackChain(
             incident_name=f"Attack Chain {chain_letters[idx % len(chain_letters)]}",
             source_ip=ip,
             severity=severity,
-            primary_attack_type=primary_action.replace("_", " ").title(),
+            primary_attack_type=_sanitize(primary_action.replace("_", " ").title()),
             timeline=timeline_events[:50],
-            ai_narrative=story.get("narrative", "Attack sequence detected."),
-            prediction=prediction
+            ai_narrative=_sanitize(story.get("narrative", "Attack sequence detected.")),
+            prediction=prediction,
         ))
         idx += 1
 
     severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
     attack_chains.sort(
         key=lambda c: (severity_rank.get(c.severity.lower(), 0), len(c.timeline)),
-        reverse=True
+        reverse=True,
     )
 
     return AttackChainsResponse(chains=attack_chains)
