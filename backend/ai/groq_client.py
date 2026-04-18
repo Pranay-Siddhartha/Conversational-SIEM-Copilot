@@ -116,27 +116,29 @@ def generate_chat_response(question: str, log_context: str, count: int = 0) -> s
 
 
 def generate_attack_story(events_text: str) -> dict:
-    """Generate timeline narrative from security events."""
     prompt = TIMELINE_PROMPT.format(events=events_text)
     raw = call_groq(CHAT_SYSTEM_PROMPT, prompt)
 
     parsed = _safe_json_loads(raw)
     if parsed:
-        # If the narrative field itself contains a nested JSON string, unwrap it
         narrative = parsed.get("narrative", "")
         if isinstance(narrative, str):
             nested = _safe_json_loads(narrative)
             if nested:
                 narrative = nested.get("narrative", narrative)
-        
         return {
             "narrative": _sanitize(narrative),
             "overall_severity": _sanitize(str(parsed.get("overall_severity", "high"))),
         }
 
-    # Fallback: return sanitized raw text as narrative
+    # Last resort: if raw itself looks like a JSON blob, strip the wrapper manually
+    narrative = raw
+    json_key_match = re.search(r'"narrative"\s*:\s*"([\s\S]*?)",?\s*"overall_severity"', raw)
+    if json_key_match:
+        narrative = json_key_match.group(1)
+
     return {
-        "narrative": _sanitize(raw),
+        "narrative": _sanitize(narrative),
         "overall_severity": "high",
     }
 
