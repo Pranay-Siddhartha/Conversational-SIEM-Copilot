@@ -1,5 +1,6 @@
 """Log upload and query endpoints."""
 import json
+from datetime import datetime
 from collections import Counter, defaultdict
 from fastapi import APIRouter, UploadFile, File, Depends, Query
 from sqlalchemy.orm import Session
@@ -12,6 +13,25 @@ from backend.services.logger import get_logger, log_error
 
 logger = get_logger("logs")
 router = APIRouter(prefix="/logs", tags=["logs"])
+
+
+def _safe_ts(e) -> datetime:
+    """Return a sortable datetime from an event, handling str/datetime/None."""
+    ts = e.timestamp
+    if isinstance(ts, datetime):
+        return ts.replace(tzinfo=None)  # strip tz so mixed-tz logs don't crash
+    if isinstance(ts, str) and ts:
+        for fmt in (
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+        ):
+            try:
+                return datetime.strptime(ts, fmt)
+            except ValueError:
+                continue
+    return datetime.min  # nulls and unparseable timestamps sort to the bottom
 
 
 @router.post("/upload", response_model=LogUploadResponse)
@@ -38,6 +58,9 @@ async def upload_log(file: UploadFile = File(...), db: Session = Depends(get_db)
 
     db.add_all(db_events)
     db.commit()
+
+    from backend.routers.analysis import clear_ai_cache
+    clear_ai_cache()
 
     return LogUploadResponse(
         message=f"Successfully parsed and stored {len(db_events)} events",
@@ -93,8 +116,13 @@ def get_stats(db: Session = Depends(get_db)):
     failed_by_hour = defaultdict(int)
     for e in events:
         if e.status == "failure" and e.timestamp:
-            hour_key = e.timestamp.strftime("%Y-%m-%d %H:00")
-            failed_by_hour[hour_key] += 1
+            try:
+                ts = _safe_ts(e)
+                hour_key = ts.strftime("%Y-%m-%d %H:00")
+                failed_by_hour[hour_key] += 1
+            except Exception:
+                pass  # unparseable timestamp — skip silently
+
     failed_trend = [
         {"time": k, "count": v}
         for k, v in sorted(failed_by_hour.items())
@@ -110,20 +138,20 @@ def get_stats(db: Session = Depends(get_db)):
     unique_ips = len(set(e.source_ip for e in events if e.source_ip))
     unique_users = len(set(e.username for e in events if e.username))
 
-    # Recent threats
+    # Recent threats — safe sort using _safe_ts
     recent = [
-    {
-        "timestamp": e.timestamp.isoformat() if e.timestamp else "",
-        "event": f"{e.action} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}",
-        "severity": e.severity or "info",
-    }
-    for e in sorted(
-        events,
-        key=lambda x: x.timestamp if x.timestamp else "",
-        reverse=True
-    )[:5]
-    if e.severity in ("high", "critical")
-    ]
+        {
+            "timestamp": (
+                e.timestamp.isoformat()
+                if isinstance(e.timestamp, datetime)
+                else str(e.timestamp or "")
+            ),
+            "event": f"{e.action or 'unknown'} by {e.username or 'unknown'} from {e.source_ip or 'unknown'}",
+            "severity": e.severity or "info",
+        }
+        for e in sorted(events, key=_safe_ts, reverse=True)
+        if e.severity in ("high", "critical")
+    ][:5]
 
     return DashboardStats(
         total_events=total,
@@ -139,9 +167,13 @@ def get_stats(db: Session = Depends(get_db)):
 
 @router.delete("/clear")
 def clear_logs(db: Session = Depends(get_db)):
-    """Clear all log events."""
+    """Clear all log events and invalidate AI cache."""
     db.query(LogEvent).delete()
     db.commit()
+
+    from backend.routers.analysis import clear_ai_cache
+    clear_ai_cache()
+
     return {"message": "All log events cleared"}
 
 
