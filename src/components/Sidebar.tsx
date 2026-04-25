@@ -68,13 +68,12 @@ export default function Sidebar() {
           </div>
           <button
             onClick={async () => {
-              try {
-                await clearLogs();
-              } catch (e) {
-                console.error("Failed to clear logs on logout:", e);
-              }
+              // Trigger log clearing but don't let it block the logout experience
+              clearLogs().catch((e) => console.error("Log clearing failed:", e));
+              
+              // Clear local state and redirect immediately
               localStorage.removeItem("siem_username");
-              router.push("/login");
+              window.location.href = "/login";
             }}
             style={{
               background: "none", border: "none", cursor: "pointer",
