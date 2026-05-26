@@ -16,15 +16,20 @@ else:
 
 # Production-grade engine pooling configuration
 # pool_pre_ping: Critical for PostgreSQL stability to recover disconnected sessions
-connect_args = {"check_same_thread": False} if DB_URL.startswith("sqlite") else {}
+is_sqlite = DB_URL.startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {}
 
-engine = create_engine(
-    DB_URL,
-    connect_args=connect_args,
-    pool_size=15 if not DB_URL.startswith("sqlite") else None,
-    max_overflow=25 if not DB_URL.startswith("sqlite") else None,
-    pool_pre_ping=True
-)
+engine_kwargs = {
+    "connect_args": connect_args,
+    "pool_pre_ping": True,
+}
+
+# SQLite doesn't support pool_size/max_overflow — only set for PostgreSQL/MySQL
+if not is_sqlite:
+    engine_kwargs["pool_size"] = 15
+    engine_kwargs["max_overflow"] = 25
+
+engine = create_engine(DB_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
