@@ -15,7 +15,7 @@ else:
     DB_URL = settings.DATABASE_URL or f"sqlite:///data/{DB_NAME}"
 
 # Production-grade engine pooling configuration
-# pool_pre_ping: Critical for Supabase/Cloud SQL stability to recover disconnected sessions
+# pool_pre_ping: Critical for PostgreSQL stability to recover disconnected sessions
 connect_args = {"check_same_thread": False} if DB_URL.startswith("sqlite") else {}
 
 engine = create_engine(
