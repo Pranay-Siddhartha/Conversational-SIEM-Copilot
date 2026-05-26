@@ -8,18 +8,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: siem-copilot-backend
-          type: web
-          property: host
-        value: https://${RENDER_EXTERNAL_URL}/api
+        value: https://siem-copilot-backend.onrender.com/api
     autoDeploy: true
-    staticPublishPath: out
-    headers:
-      - path: /
-        headers:
-          - key: Cache-Control
-            value: public, max-age=3600
 
   - type: web
     name: siem-copilot-backend
@@ -36,7 +26,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: CORS_ORIGINS
-        value: https://${RENDER_EXTERNAL_URL}
+        value: "https://siem-copilot-frontend.onrender.com"
     autoDeploy: true
     healthCheck:
       path: /docs
