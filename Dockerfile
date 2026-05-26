@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 8000
+# Expose the default port (Render overrides via PORT env var)
+EXPOSE ${PORT:-8000}
 
-# Command to run the application as a proper Python package
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the application — uses PORT env var set by Render (defaults to 8000)
+CMD python -m uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
