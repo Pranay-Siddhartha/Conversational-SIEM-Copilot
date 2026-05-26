@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = Field(default_factory=lambda: [
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://conversational-siem-copilot-ten.vercel.app",
     ])
     ENVIRONMENT: str = Field(default="development")
 
