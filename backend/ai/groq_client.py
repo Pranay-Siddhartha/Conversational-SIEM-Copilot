@@ -51,14 +51,14 @@ def _safe_json_loads(raw: str) -> dict | None:
 
 
 def call_groq(system_prompt: str, user_prompt: str) -> str:
-    """Call Groq API using lightweight urllib (Railway-safe)."""
+    """Call Groq API using lightweight urllib."""
 
     api_key = os.getenv("GROQ_API_KEY") or getattr(settings, "GROQ_API_KEY", None)
     print(f"DEBUG: Groq API initialized. Key present: {bool(api_key)}")
 
     if not api_key:
         raise RuntimeError(
-            "GROQ_API_KEY is missing. Add it in Railway/Vercel Project Settings → Environment Variables."
+            "GROQ_API_KEY is missing. Add it in Render Project Settings → Environment Variables."
         )
 
     url = "https://api.groq.com/openai/v1/chat/completions"

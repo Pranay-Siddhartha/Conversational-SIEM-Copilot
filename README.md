@@ -53,9 +53,34 @@ python -m uvicorn api.index:app --reload --port 8000
 
 ---
 
-## ☁️ Vercel Deployment
+## ☁️ Cloud Deployment
 
-This project is optimized for Vercel with a standard root-level layout.
+### Render Deployment (Recommended for Full-Stack)
+
+Deploy the entire application to Render with PostgreSQL database:
+
+```bash
+# Push to GitHub (including render.yaml)
+git push origin main
+
+# Then:
+# 1. Go to https://dashboard.render.com
+# 2. Click "New +" → "Blueprint"
+# 3. Select your repository
+# 4. Render deploys everything automatically
+```
+
+**Deployment includes:**
+- FastAPI backend service
+- Next.js frontend service
+- PostgreSQL database
+- Automatic SSL/TLS certificates
+
+For detailed instructions, see [RENDER_QUICKSTART.md](RENDER_QUICKSTART.md) or [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md).
+
+### Vercel Deployment
+
+This project is also optimized for Vercel with a standard root-level layout.
 
 > [!IMPORTANT]
 > **Project Settings on Vercel**:

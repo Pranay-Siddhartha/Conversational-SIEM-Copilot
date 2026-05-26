@@ -20,10 +20,7 @@ app = FastAPI(
 # ── CORS ──────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://conversational-siem-copilot-ten.vercel.app",
-        "http://localhost:3000",
-    ],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -84,6 +81,6 @@ def health():
     return {
         "status": "operational",
         "service": "SIEM Copilot Enterprise API",
-        "node": "Railway Production Node",
-        "runtime": "Python 3.11 Package"
+        "environment": settings.ENVIRONMENT,
+        "runtime": "Python 3.11 + FastAPI"
     }

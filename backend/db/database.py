@@ -4,8 +4,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from backend.config import settings
 
 # Hybrid Database Topology:
-# - Vercel: Ephemeral /tmp storage
-# - Railway/Local: Persistent data/ volume
+# - Ephemeral: /tmp storage (Vercel, some serverless)
+# - Render/Local: Use DATABASE_URL for persistent storage
 DB_NAME = "siem_copilot.db"
 if os.getenv("VERCEL"):
     DB_URL = f"sqlite:////tmp/{DB_NAME}"
