@@ -28,14 +28,7 @@ services:
       - key: CORS_ORIGINS
         value: "https://siem-copilot-frontend.onrender.com"
     autoDeploy: true
-    healthCheck:
-      path: /docs
-      interval: 300
-      timeout: 10
 
 databases:
   - name: siem-postgres
     databaseName: siem_copilot
-    initializer:
-      startCommand: |
-        psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
