@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2cf84129-3fd6-4848-b4e6-0ad0e88aca28" name="Changes" comment="Change : GROQ MODEL now uses GPT OSS">
+      <change afterPath="$PROJECT_DIR$/.github/workflows/render-deploy.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/Conversational-SIEM-Copilot-main.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AGENTS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/POSTGRESQL_CONFIG.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/[...path].py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/ai/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/ai/fallback_rules.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/ai/groq_client.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/db/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/db/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/db/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/middleware/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/prompts/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/prompts/templates.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/routers/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/routers/analysis.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/routers/chat.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/routers/logs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/routers/reports.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/sample_logs/sample_auth.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/sample_logs/sample_firewall.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/schemas/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/services/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/services/log_parser.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/services/logger.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/services/risk_scorer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/services/threat_detector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/eslint.config.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/postcss.config.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/faviconSIEM.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/file.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/globe.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/next.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/sample_auth.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/vercel.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/window.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/render-build.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/render.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/runtime.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/deploy-render.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/validate-render.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/chat/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/reports/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/timeline/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(main)/upload/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/architecture/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/docs/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/features/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/login/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/AuthGuard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/RotatingText.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Sidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/SplitText.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/TextType.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/api.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/vercel.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="86" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.2267448020508167" />
+      <entry key="MS500" value="4.200865364363443" />
+      <entry key="S2" value="10.909823143403782" />
+      <entry key="S5" value="17.14658202857049" />
+      <entry key="S10" value="21.12849114471292" />
+      <entry key="S30" value="24.89765363109853" />
+      <entry key="S60" value="28.30032870621384" />
+      <entry key="M2" value="38.87901186736554" />
+      <entry key="M5" value="75.52693254223752" />
+      <entry key="M10" value="118.53766157156565" />
+      <entry key="M15" value="142.83022589709697" />
+      <entry key="M30" value="175.29562225550163" />
+      <entry key="H1" value="195.50922907070841" />
+      <entry key="H2" value="206.81135521776542" />
+      <entry key="H4" value="212.79035022305314" />
+      <entry key="D1" value="217.94864225085726" />
+      <entry key="W1" value="218.8493987057802" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="0.0" />
+      <entry key="H2" value="0.0" />
+      <entry key="H4" value="0.0" />
+      <entry key="D1" value="0.0" />
+      <entry key="W1" value="0.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.1767864621989712" />
+      <entry key="MS500" value="4.166424244714124" />
+      <entry key="S2" value="10.88620401794565" />
+      <entry key="S5" value="17.130101231344664" />
+      <entry key="S10" value="21.117758684300437" />
+      <entry key="S30" value="24.89297780789196" />
+      <entry key="S60" value="28.294019727101492" />
+      <entry key="M2" value="38.86741021602558" />
+      <entry key="M5" value="75.51485363326607" />
+      <entry key="M10" value="118.52904157226598" />
+      <entry key="M15" value="142.82370845255357" />
+      <entry key="M30" value="175.29190861892445" />
+      <entry key="H1" value="195.50724274990068" />
+      <entry key="H2" value="206.8103274179771" />
+      <entry key="H4" value="212.7898273594078" />
+      <entry key="D1" value="217.94855383510938" />
+      <entry key="W1" value="218.8493860434558" />
+    </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3JXGIM6o0t2lGqZ0r3Nuzw18ycm" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "master",
+    "javascript.preferred.runtime.type.id": "node",
+    "js.debugger.nextJs.config.created.client": "true",
+    "js.debugger.nextJs.config.created.server": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "C:/Users/prana/Conversational-SIEM-Copilot-main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "C:\\Users\\prana\\Conversational-SIEM-Copilot-main\\node_modules\\typescript\\lib"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-WS-262.8665.259" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2cf84129-3fd6-4848-b4e6-0ad0e88aca28" name="Changes" comment="" />
+      <created>1789799919794</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1789799919794</updated>
+      <workItem from="1789799921372" duration="1221000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Change : GROQ MODEL now uses GPT OSS" />
+    <option name="LAST_COMMIT_MESSAGE" value="Change : GROQ MODEL now uses GPT OSS" />
+  </component>
+</project>

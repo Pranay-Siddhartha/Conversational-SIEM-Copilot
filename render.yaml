@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: siem-copilot-frontend
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://siem-copilot-backend.onrender.com/api
+    autoDeploy: true
+
+  - type: web
+    name: siem-copilot-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: siem-postgres
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: CORS_ORIGINS
+        value: "https://siem-copilot-frontend.onrender.com"
+    autoDeploy: true
+
+databases:
+  - name: siem-postgres
+    databaseName: siem_copilot

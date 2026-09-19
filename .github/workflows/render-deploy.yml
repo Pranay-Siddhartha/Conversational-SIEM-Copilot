@@ -1,0 +1,58 @@
+name: Render Deployment Monitor
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ✅ Validate render.yaml
+        run: |
+          if [ -f "render.yaml" ]; then
+            echo "render.yaml found ✓"
+          else
+            echo "render.yaml not found ✗"
+            exit 1
+          fi
+
+      - name: ✅ Validate Environment Variables
+        run: |
+          echo "Checking required environment variable templates..."
+          [ -f ".env.render.example" ] && echo ".env.render.example found ✓" || echo ".env.render.example missing ✗"
+
+      - name: ✅ Validate Backend Configuration
+        run: |
+          echo "Python version requirements..."
+          grep -q "python" requirements.txt && echo "requirements.txt found ✓" || echo "requirements.txt missing"
+          [ -f "backend/requirements.txt" ] && echo "backend/requirements.txt found ✓"
+
+      - name: ✅ Validate Frontend Configuration
+        run: |
+          echo "Node.js configuration..."
+          [ -f "package.json" ] && echo "package.json found ✓"
+          [ -f "next.config.ts" ] || [ -f "next.config.js" ] && echo "Next.js config found ✓"
+
+      - name: 📋 Display Configuration
+        run: |
+          echo "=== Render Deployment Config ==="
+          echo ""
+          echo "Backend Service:"
+          echo "  - Runtime: Python"
+          echo "  - Start: python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+          echo ""
+          echo "Frontend Service:"
+          echo "  - Runtime: Node.js"
+          echo "  - Build: npm install && npm run build"
+          echo "  - Start: npm start"
+          echo ""
+          echo "Database:"
+          echo "  - Type: PostgreSQL"
+          echo "  - Name: siem_copilot"
+          echo ""
+          echo "See RENDER_DEPLOYMENT.md for complete setup instructions"
