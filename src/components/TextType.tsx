@@ -54,7 +54,7 @@ export default function TextType({
         setTextIndex((prev) => (prev + 1) % texts.length);
       }
     }
-  }, [charIndex, isDeleting, isPaused, currentFullText.length, pauseDuration, texts.length, textIndex]);
+  }, [charIndex, isDeleting, isPaused, currentFullText.length, pauseDuration, texts.length]);
 
   useEffect(() => {
     const speed = isDeleting ? deletingSpeed : typingSpeed;

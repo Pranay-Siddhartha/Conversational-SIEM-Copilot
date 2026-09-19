@@ -18,7 +18,7 @@ def _sanitize(text: str) -> str:
     """Strip control characters that break JSON serialization."""
     if not text:
         return text
-    # Remove all control chars except tab, newline, carriage return
+    # Removes all control chars except tab, newline, carriage return
     return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
 
 
@@ -64,7 +64,7 @@ def call_groq(system_prompt: str, user_prompt: str) -> str:
     url = "https://api.groq.com/openai/v1/chat/completions"
 
     payload = json.dumps({
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-20b",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},

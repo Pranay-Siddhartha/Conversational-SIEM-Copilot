@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
 import { FileText, Download, Loader } from "lucide-react";
-import { generateReport, getReports } from "../../../lib/api";
+import { generateReport, getReports, type Report } from "../../../lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export default function ReportsPage() {
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
-  const [pastReports, setPastReports] = useState<any[]>([]);
+  const [pastReports, setPastReports] = useState<Report[]>([]);
   const [showPast, setShowPast] = useState(false);
 
   const handleGenerate = async () => {
@@ -17,7 +17,11 @@ export default function ReportsPage() {
       const data = await generateReport("Security Incident Report");
       setReport(data);
     } catch {
-      setReport({ content: "⚠️ Error generating report. Make sure the backend is running." });
+      setReport({
+        id: 0,
+        title: "Report Generation Error",
+        content: "⚠️ Error generating report. Make sure the backend is running.",
+      });
     }
     setLoading(false);
   };

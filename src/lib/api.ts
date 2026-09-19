@@ -8,10 +8,73 @@ const BASE_URL =
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000;
 
+export interface UploadResult {
+  message: string;
+  events_count: number;
+  log_source: string;
+}
+
+export interface RiskFactor {
+  factor: string;
+  impact: number;
+}
+
+export interface RiskScore {
+  overall_score: number;
+  severity: string;
+  factors: RiskFactor[];
+}
+
+export interface DashboardStats {
+  total_events: number;
+  suspicious_events: number;
+  unique_ips: number;
+  unique_users: number;
+  severity_distribution: Record<string, number>;
+  top_source_ips: Array<{ ip: string; count: number; severity?: string }>;
+  failed_login_trend: Array<{ time: string; count: number }>;
+}
+
+export interface Prediction {
+  predicted_next_move: string;
+  confidence: string;
+  reasoning: string;
+  recommended_actions: string[];
+}
+
+export interface TimelineEvent {
+  timestamp?: string;
+  event: string;
+  severity: string;
+  details?: string;
+}
+
+export interface AttackChain {
+  incident_name: string;
+  source_ip: string;
+  severity: string;
+  primary_attack_type: string;
+  timeline: TimelineEvent[];
+  ai_narrative: string;
+  prediction: Prediction;
+}
+
+export interface Report {
+  id: number;
+  title: string;
+  content: string;
+  created_at?: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  sources_used: number;
+}
+
 /**
  * Enhanced fetch with retry logic and timeout protection.
  */
-async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount = 0): Promise<any> {
+async function apiFetch<T>(endpoint: string, options: RequestInit = {}, retryCount = 0): Promise<T> {
   const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   const controller = new AbortController();
@@ -31,8 +94,12 @@ async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount 
 
     if (!response.ok) {
       // SaaS Error Handling: Extract JSON error if possible
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.detail || errorData.error || `Error ${response.status}`;
+      const errorData: unknown = await response.json().catch(() => ({}));
+      const errorMessage =
+        typeof errorData === "object" && errorData !== null &&
+        ("detail" in errorData || "error" in errorData)
+          ? String(("detail" in errorData ? errorData.detail : errorData.error))
+          : `Error ${response.status}`;
 
       // Retry logic for 5xx errors
       if (response.status >= 500 && retryCount < MAX_RETRIES) {
@@ -45,10 +112,10 @@ async function apiFetch(endpoint: string, options: RequestInit = {}, retryCount 
       throw new Error(errorMessage);
     }
 
-    return response.json();
-  } catch (error: any) {
+    return response.json() as Promise<T>;
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error("Request timed out after 30 seconds. Please try again.");
     }
 
@@ -80,11 +147,11 @@ export async function uploadLog(file: File) {
     throw new Error(errorData.detail || errorData.error || `HTTP ${response.status}: ${JSON.stringify(errorData)}`);
   }
 
-  return response.json();
+  return response.json() as Promise<UploadResult>;
 }
 
-export async function getStats() {
-  return apiFetch("/logs/stats");
+export async function getStats(): Promise<DashboardStats> {
+  return apiFetch<DashboardStats>("/logs/stats");
 }
 
 export async function clearLogs() {
@@ -93,12 +160,12 @@ export async function clearLogs() {
 
 // ── ANALYSIS ──────────────────────────────────────────────
 
-export async function getRiskScore() {
-  return apiFetch("/analysis/risk-score");
+export async function getRiskScore(): Promise<RiskScore> {
+  return apiFetch<RiskScore>("/analysis/risk-score");
 }
 
-export async function getAttackChains() {
-  return apiFetch("/analysis/chains");
+export async function getAttackChains(): Promise<{ chains: AttackChain[] }> {
+  return apiFetch<{ chains: AttackChain[] }>("/analysis/chains");
 }
 
 export async function getPredictions() {
@@ -107,8 +174,8 @@ export async function getPredictions() {
 
 // ── CHAT ──────────────────────────────────────────────────
 
-export async function sendChat(message: string, contextLimit: number = 30) {
-  return apiFetch("/chat/", {
+export async function sendChat(message: string, contextLimit: number = 30): Promise<ChatResponse> {
+  return apiFetch<ChatResponse>("/chat/", {
     method: "POST",
     body: JSON.stringify({ message, context_limit: contextLimit }),
   });
@@ -116,15 +183,15 @@ export async function sendChat(message: string, contextLimit: number = 30) {
 
 // ── REPORTS ──────────────────────────────────────────────
 
-export async function generateReport(title: string = "Security Incident Report") {
-  return apiFetch("/reports/generate", {
+export async function generateReport(title: string = "Security Incident Report"): Promise<Report> {
+  return apiFetch<Report>("/reports/generate", {
     method: "POST",
     body: JSON.stringify({ title }),
   });
 }
 
-export async function getReports() {
-  return apiFetch("/reports/");
+export async function getReports(): Promise<Report[]> {
+  return apiFetch<Report[]>("/reports/");
 }
 
 export async function getReport(id: number) {

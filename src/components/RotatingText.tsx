@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type MotionProps, type Variants } from "framer-motion";
+
+type AnimationTarget = Record<string, string | number>;
 
 interface RotatingTextProps {
   texts: string[];
   staggerFrom?: "first" | "last" | "center";
-  initial?: any;
-  animate?: any;
-  exit?: any;
+  initial?: AnimationTarget;
+  animate?: AnimationTarget;
+  exit?: AnimationTarget;
   staggerDuration?: number;
-  transition?: any;
+  transition?: MotionProps["transition"];
   rotationInterval?: number;
   style?: React.CSSProperties;
 }
@@ -63,7 +65,7 @@ export default function RotatingText({
                   hidden: initial,
                   visible: { ...animate, transition: { ...transition, delay: staggerDelay } },
                   exit: { ...exit, transition: { ...transition, delay: staggerDelay } },
-                }}
+                } satisfies Variants}
               >
                 {char}
               </motion.span>

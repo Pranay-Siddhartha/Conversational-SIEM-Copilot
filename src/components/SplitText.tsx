@@ -1,18 +1,20 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, type MotionProps, type Transition } from "framer-motion";
+
+type AnimationTarget = Exclude<MotionProps["initial"], boolean | string | undefined>;
 
 interface SplitTextProps {
   text: string;
   style?: React.CSSProperties;
   delay?: number;
   duration?: number;
-  ease?: any;
+  ease?: Transition["ease"];
   splitType?: "chars" | "words";
-  from?: any;
-  to?: any;
+  from?: AnimationTarget;
+  to?: AnimationTarget;
   threshold?: number;
-  rootMargin?: string;
+  rootMargin?: `${number}px`;
   textAlign?: "left" | "center" | "right";
   onLetterAnimationComplete?: () => void;
   showCallback?: boolean;
@@ -34,7 +36,7 @@ export default function SplitText({
   showCallback = false,
 }: SplitTextProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: rootMargin as any, amount: threshold });
+  const inView = useInView(ref, { once: true, margin: rootMargin, amount: threshold });
   const [complete, setComplete] = useState(false);
 
   const elements = splitType === "chars" ? text.split("") : text.split(" ");

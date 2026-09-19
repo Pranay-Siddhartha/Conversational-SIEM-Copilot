@@ -1,11 +1,13 @@
 "use client";
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { Upload, CheckCircle, AlertCircle, FileText, Download } from "lucide-react";
 import { uploadLog, clearLogs } from "../../../lib/api";
+import type { UploadResult } from "../../../lib/api";
 
 export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState("");
   const [dragover, setDragover] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -17,7 +19,7 @@ export default function UploadPage() {
     try {
       const data = await uploadLog(file);
       setResult(data);
-    } catch (e) {
+    } catch {
       setError("Failed to upload. Make sure the backend is running on port 8000.");
     }
     setUploading(false);
@@ -111,9 +113,9 @@ export default function UploadPage() {
             </div>
           </div>
           <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-            <a href="/" className="btn btn-primary">View Dashboard</a>
-            <a href="/chat" className="btn btn-outline">Start Investigation</a>
-            <a href="/timeline" className="btn btn-outline">View Timeline</a>
+            <Link href="/" className="btn btn-primary">View Dashboard</Link>
+            <Link href="/chat" className="btn btn-outline">Start Investigation</Link>
+            <Link href="/timeline" className="btn btn-outline">View Timeline</Link>
           </div>
         </div>
       )}
