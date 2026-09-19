@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(
+    () => typeof window !== "undefined" && Boolean(localStorage.getItem("siem_username")),
+  );
 
   useEffect(() => {
     const user = localStorage.getItem("siem_username");
     if (!user) {
       router.push("/login");
-    } else {
-      setMounted(true);
     }
   }, [router]);
 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -23,13 +23,9 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [username, setUsername] = useState<string>("Analyst");
-
-  useEffect(() => {
-    const user = localStorage.getItem("siem_username");
-    if (user) setUsername(user);
-  }, []);
+  const [username] = useState<string>(
+    () => (typeof window !== "undefined" && localStorage.getItem("siem_username")) || "Analyst",
+  );
 
   return (
     <aside className="sidebar">

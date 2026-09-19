@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Clock, AlertTriangle, Zap, ShieldAlert, Activity } from "lucide-react";
-import { getAttackChains } from "../../../lib/api";
+import { getAttackChains, type AttackChain, type TimelineEvent } from "../../../lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export default function TimelinePage() {
-  const [chains, setChains] = useState<any[]>([]);
+  const [chains, setChains] = useState<AttackChain[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -154,7 +154,7 @@ export default function TimelinePage() {
       </h3>
       {activeChain?.timeline?.length > 0 ? (
         <div className="timeline">
-          {activeChain.timeline.map((e: any, i: number) => (
+          {activeChain.timeline.map((e: TimelineEvent, i: number) => (
             <div key={i} className="timeline-event">
               <div className={`timeline-dot ${e.severity}`} />
               <div className="timeline-content">

@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { Shield, AlertTriangle, Globe, Users, TrendingUp } from "lucide-react";
 import { getStats, getRiskScore } from "../../lib/api";
+import type { DashboardStats, RiskScore } from "../../lib/api";
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "#ff0000",
@@ -16,8 +17,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<any>(null);
-  const [risk, setRisk] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [risk, setRisk] = useState<RiskScore | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -143,7 +144,7 @@ export default function DashboardPage() {
                 <span className="label">{risk.severity}</span>
               </div>
               <div style={{ flex: 1 }}>
-                {risk.factors?.map((f: any, i: number) => (
+                {risk.factors?.map((f, i: number) => (
                   <div key={i} style={{ marginBottom: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                       <span style={{ fontSize: 13 }}>{f.factor}</span>
@@ -215,10 +216,10 @@ export default function DashboardPage() {
                 contentStyle={{ background: "#1a1f35", border: "1px solid #2a3050", borderRadius: 8, fontSize: 12 }}
               />
               <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20}>
-                {stats.top_source_ips?.map((entry: any, i: number) => (
+                {stats.top_source_ips?.map((entry, i: number) => (
                   <Cell
                     key={i}
-                    fill={SEVERITY_COLORS[entry.severity] || "#6366f1"}
+                    fill={(entry.severity && SEVERITY_COLORS[entry.severity]) || "#6366f1"}
                   />
                 ))}
               </Bar>
