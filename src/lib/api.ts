@@ -174,7 +174,7 @@ export async function getPredictions() {
 
 // ── CHAT ──────────────────────────────────────────────────
 
-export async function sendChat(message: string, contextLimit: number = 30): Promise<ChatResponse> {
+export async function sendChat(message: string, contextLimit: number = 10): Promise<ChatResponse> {
   return apiFetch<ChatResponse>("/chat/", {
     method: "POST",
     body: JSON.stringify({ message, context_limit: contextLimit }),

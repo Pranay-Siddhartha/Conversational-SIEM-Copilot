@@ -19,7 +19,7 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     events = (
         db.query(LogEvent)
         .order_by(LogEvent.timestamp.desc().nullslast())
-        .limit(req.context_limit)
+        .limit(min(max(req.context_limit, 1), 10))
         .all()
     )
 
@@ -53,4 +53,3 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
             status_code=500,
             content={"error": "Investigation service failure", "detail": str(e)}
         )
-

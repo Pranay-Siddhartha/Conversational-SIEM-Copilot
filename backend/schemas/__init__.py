@@ -41,7 +41,7 @@ class LogFilterParams(BaseModel):
 # ── Chat ────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     message: str
-    context_limit: int = 200
+    context_limit: int = 10
 
 
 class ChatResponse(BaseModel):
